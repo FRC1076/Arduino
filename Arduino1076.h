@@ -5,7 +5,7 @@
 #define ROBOT_IP  (IpAddress(10, 10, 76, 2))
 #define SONAR_PORT 8888
 #define SONAR_IP  (IpAddress(10, 10, 76, 7))
-#define SONAR_MAC { 0x71 0x41 0x10 0x10 0x76 0x07 }
+#define SONAR_MAC ({ 0x71 0x41 0x10 0x10 0x76 0x07 })
 
 #endif   /* ARDUINO1076 */
 
