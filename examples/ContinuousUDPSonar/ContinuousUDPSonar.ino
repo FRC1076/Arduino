@@ -17,6 +17,7 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>  // UDP library from: bjoern@cs.stanford.edu 12/30/2008
 #include <NewPing.h>
+#include <Arduino1076.h>
 
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
