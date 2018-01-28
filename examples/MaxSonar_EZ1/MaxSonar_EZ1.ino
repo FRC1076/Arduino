@@ -26,6 +26,13 @@
 
   http://www.arduino.cc/en/Tutorial/AnalogInput
 */
+#include <SPI.h>         // needed for Arduino versions later than 0018
+#include <Ethernet.h>
+#include <EthernetUdp.h>         // UDP library from: bjoern@cs.stanford.edu 12/30/2008
+#include <ArduinoJson.h>
+#include <Arduino1076.h>
+#include <EthernetUdp.h>  // UDP library from: bjoern@cs.stanford.edu 12/30/2008
+#include <NewPing.h>
 
 const int microsperinch = 147;
 int sensorPin = A0;    // select the input pin for the potentiometer
@@ -36,6 +43,15 @@ int startPulse = 0;
 int endPulse = 0;
 boolean gotPulse = false;
 int pulseWidth = 0;
+int localPort = 8888;
+DynamicJsonBuffer jsonBuffer;
+
+byte mac[] = {
+  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
+};
+
+IPAddress robotip(10, 10, 76, 245);
+IPAddress myip(10, 10, 76, 7);
 
 void pulseChange() {
    if (digitalRead(interruptPin) == HIGH){
@@ -48,13 +64,23 @@ void pulseChange() {
       gotPulse = true;
    }
 }
+EthernetUDP Udp;
+char ReplyBuffer[255]; // a string to send back
 
 void setup() {
+  Ethernet.begin(mac, myip);
+  Udp.begin(localPort);
   // declare the ledPin as an OUTPUT:
   pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
   pinMode(interruptPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(interruptPin), pulseChange, CHANGE);
+  String input("{ \"sender\" : \"sonar\" }");
+  JsonObject& root = jsonBuffer.parseObject(input);
+  if (root[String("sender")] == String("sonar")) {
+    Serial.println("json passed");
+}
+
 }
 
 void loop() {
@@ -73,4 +99,11 @@ void loop() {
   }
   delay(100);
   Serial.println(sensorValue);
+
+  Udp.beginPacket(ROBOT_IP, SONAR_PORT);
+  sprintf(ReplyBuffer, "{\"sender\": \"sonar\", \"message\": \"ranges\", \"left front\":%d, \"right front\":%d}", pulseWidth, pulseWidth);
+  Udp.write(ReplyBuffer);
+  Udp.endPacket();
+  Serial.println("Sent");
+  delay(500);
 }
