@@ -1,24 +1,14 @@
-/*
- UDPSendReceiveString:
- This sketch receives UDP message strings, prints them to the serial port
- and sends an "acknowledge" string back to the sender
 
- A Processing sketch is included at the end of file that can be used to send
- and received messages for testing with a computer.
-
- created 21 Aug 2010
- by Michael Margolis
-
- This code is in the public domain.
- */
 
 
 #include <SPI.h>         // needed for Arduino versions later than 0018
 #include <Ethernet.h>
 #include <EthernetUdp.h>         // UDP library from: bjoern@cs.stanford.edu 12/30/2008
 #include <Adafruit_NeoPixel.h>
+#include <ArduinoJson.h>
 #define PIXEL_PIN    6    // Digital IO pin connected to the NeoPixels.
-#define PIXEL_COUNT 16
+#define PIXEL_COUNT 100
+#define UDP_PACKET_MAX_SIZE 128
 
 // Parameter 1 = number of pixels in strip,  neopixel stick has 8
 // Parameter 2 = pin number (most are valid)
@@ -35,12 +25,12 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, NEO_GRB + NE
 byte mac[] = {
   0xDE, 0xAD, 0x10, 0x76, 0x1, 0xB1
 };
-IPAddress ip(192, 168, 1, 177);
+IPAddress ip(10, 10, 76, 17);
 
 unsigned int localPort = 8888;      // local port to listen on
 
 // buffers for receiving and sending data
-char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  //buffer to hold incoming packet,
+char packetBuffer[UDP_PACKET_MAX_SIZE];  //buffer to hold incoming packet,
 char  ReplyBuffer[] = "I got it";       // a string to send back
 
 // An EthernetUDP instance to let us send and receive packets over UDP
@@ -58,6 +48,7 @@ void setup() {
 
 void loop() {
   // if there's data available, read a packet
+  
   int packetSize = Udp.parsePacket();
   if (packetSize) {
     Serial.print("Received packet of size ");
@@ -74,17 +65,33 @@ void loop() {
     Serial.println(Udp.remotePort());
 
     // read the packet into packetBufffer
-    Udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
+    Udp.read(packetBuffer, UDP_PACKET_MAX_SIZE);
     Serial.println("Contents:");
     Serial.println(packetBuffer);
+    String stringBuffer(packetBuffer);
+    //showType = stringBuffer.toInt();   
+
+
+  DynamicJsonBuffer jsonBuffer;
+
+  // You can use a String as your JSON input.
+  // WARNING: the content of the String will be duplicated in the JsonBuffer.
+  String input = stringBuffer;
+  JsonObject& root = jsonBuffer.parseObject(input);
+
+  // You can use a String to get an element of a JsonObject
+  // No duplication is done.
+   String message = root[String("message")];
+   int show_index = root[String("show-index")];
+Serial.println(message);
+
+
 
     // send a reply to the IP address and port that sent us the packet we received
     Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
     Udp.write(ReplyBuffer);
     Udp.endPacket();
-    showType++;
-    if (showType > 9)
-       showType=0;
+    showType = show_index;
     startShow(showType);
   }
   delay(10);
@@ -111,6 +118,8 @@ void startShow(int i) {
     case 8: rainbowCycle(20);
             break;
     case 9: theaterChaseRainbow(50);
+            break;
+    default:colorWipe(strip.Color(0, 0, 0), 50);
             break;
   }
 }
@@ -214,7 +223,7 @@ uint32_t Wheel(byte WheelPos) {
 
  void setup() {
  udp = new UDP( this, 6000 );  // create a new datagram connection on port 6000
- //udp.log( true ); 		// <-- printout the connection activity
+ //udp.log( true );     // <-- printout the connection activity
  udp.listen( true );           // and wait for incoming message
  }
 
@@ -223,19 +232,18 @@ uint32_t Wheel(byte WheelPos) {
  }
 
  void keyPressed() {
- String ip       = "192.168.1.177";	// the remote IP address
- int port        = 8888;		// the destination port
+ String ip       = "192.168.1.177"; // the remote IP address
+ int port        = 8888;    // the destination port
 
  udp.send("Hello World", ip, port );   // the message to send
 
  }
 
- void receive( byte[] data ) { 			// <-- default handler
- //void receive( byte[] data, String ip, int port ) {	// <-- extended handler
+ void receive( byte[] data ) {      // <-- default handler
+ //void receive( byte[] data, String ip, int port ) { // <-- extended handler
 
  for(int i=0; i < data.length; i++)
  print(char(data[i]));
  println();
  }
  */
-
