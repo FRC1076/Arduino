@@ -131,6 +131,7 @@ void shiftPicture(Adafruit_NeoPixel &pixels, int how_far) {
   for(int r=31; r>=0; r--) {
     shiftRow(pixels, r);
   }
+  pixels.show();
 }
 
 void shiftRow(Adafruit_NeoPixel &pixels, int group) {
@@ -144,7 +145,6 @@ void shiftRow(Adafruit_NeoPixel &pixels, int group) {
      uint32_t p = pixels.getPixelColor(src_btm+i);
      pixels.setPixelColor(dest_top-i, p);
   }
-  pixels.show();
 }
 
 void setup() {
@@ -160,9 +160,11 @@ void setup() {
 
   // For a set of NeoPixels the first NeoPixel is 0, second is 1
   loadPicture(pixels, picture);
+  delay(3000);
 }
 
 void loop() {
     // shift it down forever
     shiftPicture(pixels, 1);
+    delay(100);
 }
