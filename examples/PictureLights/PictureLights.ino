@@ -46,24 +46,24 @@ byte image_data[NUMINBOUND+NUMPIXELS+NUMOUTBOUND] =
                             DATF(1, 1, 1, 1, 1, 1, 1, 1),
                             DATR(1, 0, 0, 0, 0, 0, 0, 1),
                             DATF(0, 0, 0, 0, 0, 0, 0, 0),
-                            DATR(0, 0, 2, 2, 2, 2, 0, 0),
-                            DATF(0, 0, 2, 2, 2, 2, 0, 0),
+                            DATR(0, 0, 1, 1, 1, 1, 0, 0),
+                            DATF(0, 0, 1, 1, 1, 1, 0, 0),
                             DATR(0, 0, 0, 0, 0, 0, 0, 0),
                             DATF(1, 0, 0, 0, 0, 0, 0, 1),
                             DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
+                            DATF(1, 1, 1, 1, 1, 1, 2, 1),
+                            DATR(2, 2, 2, 1, 1, 1, 2, 2),
+                            DATF(2, 2, 2, 2, 1, 1, 2, 2),
+                            DATR(1, 1, 1, 2, 2, 1, 2, 2),
+                            DATF(1, 1, 1, 1, 2, 2, 2, 2),
+                            DATR(1, 1, 1, 1, 1, 2, 2, 1),
+                            DATF(1, 1, 1, 1, 1, 1, 1, 1),                            
+                            DATR(1, 0, 0, 0, 0, 0, 0, 1),
+                            DATF(0, 0, 0, 0, 0, 0, 0, 0),
+                            DATR(0, 0, 1, 1, 0, 1, 0, 0),
+                            DATF(0, 0, 1, 1, 0, 1, 0, 0),
+                            DATR(0, 0, 0, 0, 0, 1, 0, 0),
+                            DATF(1, 0, 0, 0, 1, 1, 0, 1),
                             DATR(1, 1, 1, 1, 1, 1, 1, 1),
                             DATF(1, 1, 1, 1, 1, 1, 1, 1),
                             DATR(2, 2, 2, 2, 2, 2, 2, 2), };  // Outbound buffer of 8
@@ -141,7 +141,7 @@ void shiftRow(Adafruit_NeoPixel &pixels, int group) {
   int src_btm = dest_btm-8;
   int src_top = src_btm+8;
   for (int i=0; i<NUMROWS; i++) {
-     int p = pixels.getPixelColor(src_btm+i);
+     uint32_t p = pixels.getPixelColor(src_btm+i);
      pixels.setPixelColor(dest_top-i, p);
   }
   pixels.show();
@@ -150,9 +150,9 @@ void shiftRow(Adafruit_NeoPixel &pixels, int group) {
 void setup() {
   pixels.begin(); // This initializes the NeoPixel library.
 
-  colors[0] = pixels.Color(0,  0,  3);
-  colors[1] = pixels.Color(2,  1,  0);    //  red
-  colors[2] = pixels.Color(0,  2,  0);    //  green (zig zag?)
+  colors[0] = pixels.Color(2,  0,  3);
+  colors[1] = pixels.Color(0,  0,  0);    //  red
+  colors[2] = pixels.Color(2,  0,  3);    //  green (zig zag?)
   colors[3] = pixels.Color(0,  0,  3);    //  blue
   colors[4] = pixels.Color(5,  5,  0);
 
@@ -164,5 +164,5 @@ void setup() {
 
 void loop() {
     // shift it down forever
-    // shiftPicture(pixels, 1);
+    shiftPicture(pixels, 1);
 }
