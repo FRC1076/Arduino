@@ -1,10 +1,14 @@
-// NeoPixel Ring simple sketch (c) 2013 Shae Erisson
-// released under the GPLv3 license to match the rest of the AdaFruit NeoPixel library
+// PictureLights
+// Render bit pictures in 8x32 Neopixel matrix and
+// render shifting text.  (with bit font definitions)
 
 #include <Adafruit_NeoPixel.h>
+#include "FontLetter.h"
+
 #ifdef __AVR__
   #include <avr/power.h>
 #endif
+
 
 // Which pin on the Arduino is connected to the NeoPixels?
 // On a Trinket or Gemma we suggest changing this to 1
@@ -22,6 +26,16 @@
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 uint32_t colors[NUMCOLORS];
+
+byte fontbits[] =                 { 0b11111000,
+                                    0b11111110,
+                                    0b00110011,
+                                    0b00110011,
+                                    0b11111110,
+                                    0b11111000  };
+
+FontLetter letA = FontLetter('A', fontbits, 6);
+
 
 // Transform the data to serpentine to make the array look like the display
 #define DATR(a, b, c, d, e, f, g, h)  h,g,f,e,d,c,b,a
@@ -95,7 +109,7 @@ void loadPicture(Adafruit_NeoPixel &pixels, byte *picture) {
 
 int delayval = 1;
 
-#define NUMROWS 8
+#define PIXELSPERCOLUMN 8
 
 //
 //  This loads an array by providing the serpentine transform
@@ -127,21 +141,36 @@ void loadArrayPicture(Adafruit_NeoPixel &pixels, byte *picture) {
 //
 // Reading image from pixel memory, shift it off to the right
 //
-void shiftPicture(Adafruit_NeoPixel &pixels, int how_far) {
-  for(int r=31; r>=0; r--) {
-    shiftRow(pixels, r);
+void shiftPicture(Adafruit_NeoPixel &pixels, int how_far, byte in_data, uint32_t color) {
+  for(int r=0; r<32; r++) {
+    shiftColumn(pixels, r);
+  }
+  //
+  //  Optionally shift in some data into the first column (vacated by the shift)
+  //  It is represented as a byte instead of an array...
+  //
+  if (in_data != NULL) {
+      byte sel;
+      for(int i=0,sel=0x1; i<PIXELSPERCOLUMN; i++,sel=sel<<1) {
+          if (in_data & sel) {
+            pixels.setPixelColor(NUMPIXELS-i-1, color);
+          } else {
+            pixels.setPixelColor(NUMPIXELS-i-1, pixels.Color(0,0,0));
+          }
+      }
   }
   pixels.show();
+  delay(33);
 }
 
-void shiftRow(Adafruit_NeoPixel &pixels, int group) {
+void shiftColumn(Adafruit_NeoPixel &pixels, int column) {
   
   // toss in order column data to ooo column (and vice versa)
-  int dest_btm = group*8;
+  int src_btm = column*8;
+  int src_top = src_btm+7;
+  int dest_btm = src_btm-8;
   int dest_top = dest_btm+7;
-  int src_btm = dest_btm-8;
-  int src_top = src_btm+8;
-  for (int i=0; i<NUMROWS; i++) {
+  for (int i=0; i<PIXELSPERCOLUMN; i++) {
      uint32_t p = pixels.getPixelColor(src_btm+i);
      pixels.setPixelColor(dest_top-i, p);
   }
@@ -164,7 +193,19 @@ void setup() {
 }
 
 void loop() {
-    // shift it down forever
-    shiftPicture(pixels, 1);
-    delay(100);
+    // shift it down forever (pad with blank column before and after)
+    //for (byte *each_column = letA.first_column();
+    //           each_column != NULL;
+    //           each_column = letA.next_column()) {
+    //    shiftPicture(pixels, 1, *each_column, pixels.Color(7, 0, 7));
+    //}
+    char msg[] = "(PI) (HI) (SAMURAI)";
+    for (int letter = 0; letter < sizeof(msg); letter++) {
+      for (int col=7; col>=0; col--) {
+        shiftPicture(pixels, 1, font8x8_basic[msg[letter]][col], pixels.Color(7, 0, 7));
+      }
+      shiftPicture(pixels, 1, 0xff, pixels.Color(0,0,0));
+      delay(5000);
+    }
+    
 }
