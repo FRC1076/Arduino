@@ -166,10 +166,16 @@ void shiftPicture(Adafruit_NeoPixel &pixels, int how_far, byte in_data, uint32_t
 void shiftColumn(Adafruit_NeoPixel &pixels, int column) {
   
   // toss in order column data to ooo column (and vice versa)
-  int src_btm = column*8;
-  int src_top = src_btm+7;
-  int dest_btm = src_btm-8;
-  int dest_top = dest_btm+7;
+  int src_btm = column*8;           //-- first in column
+  int src_top = src_btm+7;          //-- last in column
+  int dest_btm = src_btm-8;         //-- first in dest column
+  int dest_top = dest_btm+7;        //-- last in dest column
+
+  //
+  // transfer data starting at first src element (increasing index)
+  // to the location starting at first dest (decreasing index)
+  // This is general enough that it works for zig or zag columns
+  //
   for (int i=0; i<PIXELSPERCOLUMN; i++) {
      uint32_t p = pixels.getPixelColor(src_btm+i);
      pixels.setPixelColor(dest_top-i, p);
@@ -199,13 +205,18 @@ void loop() {
     //           each_column = letA.next_column()) {
     //    shiftPicture(pixels, 1, *each_column, pixels.Color(7, 0, 7));
     //}
-    char msg[] = "(PI) (HI) (SAMURAI)";
+    char msg[] = "\"It was a dark and stormy night. " \
+                 "The Captain and I were standing alone on the deck. " \
+                 "The ship was sinking. " \
+                 "The Captain said to me: " \
+                 "\"Tell me a story, my Son.\" "   \
+                 "And so I began...";
     for (int letter = 0; letter < sizeof(msg); letter++) {
       for (int col=7; col>=0; col--) {
         shiftPicture(pixels, 1, font8x8_basic[msg[letter]][col], pixels.Color(7, 0, 7));
       }
       shiftPicture(pixels, 1, 0xff, pixels.Color(0,0,0));
-      delay(5000);
+      delay(33);
     }
     
 }
