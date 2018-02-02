@@ -141,26 +141,25 @@ void loadArrayPicture(Adafruit_NeoPixel &pixels, byte *picture) {
 //
 // Reading image from pixel memory, shift it off to the right
 //
-void shiftPicture(Adafruit_NeoPixel &pixels, int how_far, byte in_data, uint32_t color) {
+void shiftPicture(Adafruit_NeoPixel &pixels, int how_far, byte shift_in_column, uint32_t color) {
   for(int r=0; r<32; r++) {
     shiftColumn(pixels, r);
   }
   //
-  //  Optionally shift in some data into the first column (vacated by the shift)
+  //  Shift in some data into the first column (vacated by the shift)
   //  It is represented as a byte instead of an array...
   //
-  if (in_data != NULL) {
-      byte sel;
-      for(int i=0,sel=0x1; i<PIXELSPERCOLUMN; i++,sel=sel<<1) {
-          if (in_data & sel) {
-            pixels.setPixelColor(NUMPIXELS-i-1, color);
-          } else {
-            pixels.setPixelColor(NUMPIXELS-i-1, pixels.Color(0,0,0));
-          }
-      }
+  byte sel;
+  for(int i=0,sel=0x1; i<PIXELSPERCOLUMN; i++,sel=sel<<1) {
+    if (shift_in_column & sel) {
+      pixels.setPixelColor(NUMPIXELS-i-1, color);
+    } else {
+      pixels.setPixelColor(NUMPIXELS-i-1, pixels.Color(0,0,0));
+    }
   }
+
   pixels.show();
-  delay(33);
+  delay(15);
 }
 
 void shiftColumn(Adafruit_NeoPixel &pixels, int column) {
@@ -179,6 +178,21 @@ void shiftColumn(Adafruit_NeoPixel &pixels, int column) {
   for (int i=0; i<PIXELSPERCOLUMN; i++) {
      uint32_t p = pixels.getPixelColor(src_btm+i);
      pixels.setPixelColor(dest_top-i, p);
+  }
+}
+
+void rotate_font(byte *font, byte *rotated) {
+  byte sel = 0x1;    // select the 1 bit from each and shift into result
+  for (int r=7; r>=0; r--,sel<<=1) {
+    byte result = 0x0;
+    for (int i=7; i>=0; i--) {
+      if (font[i] & sel) {
+        result = (result << 1) | 0x1;   // shift up and set bottom bit
+      } else {
+        result = (result << 1);
+      }
+    }
+    rotated[r] = result;
   }
 }
 
@@ -212,11 +226,12 @@ void loop() {
                  "\"Tell me a story, my Son.\" "   \
                  "And so I began...";
     for (int letter = 0; letter < sizeof(msg); letter++) {
+      byte rotated[8];
+      rotate_font(font8x8_basic[msg[letter]], rotated);
       for (int col=7; col>=0; col--) {
-        shiftPicture(pixels, 1, font8x8_basic[msg[letter]][col], pixels.Color(7, 0, 7));
+        shiftPicture(pixels, 1, rotated[col], pixels.Color(7, 0, 7));
       }
-      shiftPicture(pixels, 1, 0xff, pixels.Color(0,0,0));
-      delay(33);
+      // no need for space? shiftPicture(pixels, 1, 0xff, pixels.Color(0,0,0));
     }
     
 }
