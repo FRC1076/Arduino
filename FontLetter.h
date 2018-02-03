@@ -17,6 +17,7 @@
 #endif
 
 extern byte font8x8_basic[128][8];
+extern byte font8x8_1076[98][8];
 
 class FontLetter {
   public:

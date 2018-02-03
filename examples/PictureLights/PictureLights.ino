@@ -16,9 +16,10 @@
 
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS      256
+#define PIXELSPERCOLUMN  8
+#define NUMCOLUMNS       (256/8)
 #define NUMCOLORS        5
-#define NUMINBOUND       8
-#define NUMOUTBOUND      8
+
 
 // When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
 // Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
@@ -27,7 +28,7 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 
 uint32_t colors[NUMCOLORS];
 
-byte fontbits[] =                 { 0b11111000,
+byte fontbits[] =                 { 0b11111000,   // F8
                                     0b11111110,
                                     0b00110011,
                                     0b00110011,
@@ -45,9 +46,10 @@ FontLetter letA = FontLetter('A', fontbits, 6);
 // Define the picture (along with a column for inbound and for outbound) data
 // that could be used for shifting data into the image_data.   Not sure how I
 // would be able to use that yet, but I think it might be handy for something.
-//
-byte image_data[NUMINBOUND+NUMPIXELS+NUMOUTBOUND] = 
-                          { DATF(1, 1, 1, 1, 1, 1, 1, 1),   // InBound buffer of 8
+
+
+byte picture[NUMPIXELS] = 
+                          {    // InBound buffer of 8
                             DATR(1, 1, 1, 1, 1, 1, 1, 1),
                             DATF(1, 1, 1, 1, 1, 1, 1, 1),
                             DATR(1, 1, 1, 1, 1, 1, 1, 1),
@@ -79,15 +81,8 @@ byte image_data[NUMINBOUND+NUMPIXELS+NUMOUTBOUND] =
                             DATR(0, 0, 0, 0, 0, 1, 0, 0),
                             DATF(1, 0, 0, 0, 1, 1, 0, 1),
                             DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATR(2, 2, 2, 2, 2, 2, 2, 2), };  // Outbound buffer of 8
+                            DATF(1, 1, 1, 1, 1, 1, 1, 1) };  // Outbound buffer of 8
 
-// 8 element array of stuff to be shifted in
-byte *inbound = image_data;
-// N element array containing the picture data
-byte *picture = image_data+NUMINBOUND;
-// 8 element array of stuff that was just shifted out
-byte *outbound = image_data+NUMINBOUND+NUMPIXELS;
                             
 void loadSerpentinePicture(Adafruit_NeoPixel &pixels, byte *picture) {
   //
@@ -106,11 +101,6 @@ void loadPicture(Adafruit_NeoPixel &pixels, byte *picture) {
   loadSerpentinePicture(pixels, picture);
 }
 
-
-int delayval = 1;
-
-#define PIXELSPERCOLUMN 8
-
 //
 //  This loads an array by providing the serpentine transform
 //  as it is loaded.   Every other line has to be reversed as
@@ -118,7 +108,7 @@ int delayval = 1;
 //
 void loadArrayPicture(Adafruit_NeoPixel &pixels, byte *picture) {
 
-  int num_groups = pixels.numPixels() / 16;
+  int num_groups = NUMPIXELS / 16;
 
   for (int group=0; group < num_groups; group++) {
     // reverse the first 8 in the group so it loads like the data looks
@@ -159,7 +149,7 @@ void shiftPicture(Adafruit_NeoPixel &pixels, int how_far, byte shift_in_column, 
   }
 
   pixels.show();
-  delay(15);
+  delay(33);
 }
 
 void shiftColumn(Adafruit_NeoPixel &pixels, int column) {
@@ -181,6 +171,11 @@ void shiftColumn(Adafruit_NeoPixel &pixels, int column) {
   }
 }
 
+//
+//  Rotate the font 90 degrees to the left.   This makes
+//  it suitable for shifting in from the right (instead of
+//  from above.)
+//
 void rotate_font(byte *font, byte *rotated) {
   byte sel = 0x1;    // select the 1 bit from each and shift into result
   for (int r=7; r>=0; r--,sel<<=1) {
@@ -199,9 +194,9 @@ void rotate_font(byte *font, byte *rotated) {
 void setup() {
   pixels.begin(); // This initializes the NeoPixel library.
 
-  colors[0] = pixels.Color(2,  0,  3);
+  colors[0] = pixels.Color(10,  0,  3);
   colors[1] = pixels.Color(0,  0,  0);    //  red
-  colors[2] = pixels.Color(2,  0,  3);    //  green (zig zag?)
+  colors[2] = pixels.Color(1,  1,  3);    //  green (zig zag?)
   colors[3] = pixels.Color(0,  0,  3);    //  blue
   colors[4] = pixels.Color(5,  5,  0);
 
@@ -212,6 +207,23 @@ void setup() {
   delay(3000);
 }
 
+//
+//  Note:   Font definition is still a global imported with the FontLetter class.
+//  Perhaps we can do a better job and encapsulate the font in a proper class.
+//  Class could provide a way to set the color for all following uses of the font,
+//  and could hide things like the -32 offset and the array representation...
+//
+void shiftInMessage(Adafruit_NeoPixel &pixels, char *message, uint32_t msg_size) {
+    for (int letter = 0; letter < msg_size; letter++) {
+      byte *glyph = font8x8_1076[message[letter]-32];
+
+      // shift in the glyph one column at a time
+      for (int col=0; col<8; col++) {
+        shiftPicture(pixels, 1, glyph[col], pixels.Color(50, 20, 0));
+      }
+    }
+}
+
 void loop() {
     // shift it down forever (pad with blank column before and after)
     //for (byte *each_column = letA.first_column();
@@ -219,19 +231,18 @@ void loop() {
     //           each_column = letA.next_column()) {
     //    shiftPicture(pixels, 1, *each_column, pixels.Color(7, 0, 7));
     //}
-    char msg[] = "\"It was a dark and stormy night. " \
-                 "The Captain and I were standing alone on the deck. " \
-                 "The ship was sinking. " \
-                 "The Captain said to me: " \
-                 "\"Tell me a story, my Son.\" "   \
-                 "And so I began...";
-    for (int letter = 0; letter < sizeof(msg); letter++) {
-      byte rotated[8];
-      rotate_font(font8x8_basic[msg[letter]], rotated);
-      for (int col=7; col>=0; col--) {
-        shiftPicture(pixels, 1, rotated[col], pixels.Color(7, 0, 7));
-      }
-      // no need for space? shiftPicture(pixels, 1, 0xff, pixels.Color(0,0,0));
-    }
-    
+    char msg[] = "I'm sorry, Dave. I'm afraid I can't do that.";
+    shiftInMessage(pixels, msg, sizeof(msg));
+
+    delay(2000);
+
+    char msg2[] = "Wow! that was fast!";
+    shiftInMessage(pixels, msg2, sizeof(msg2));
+
+    delay(2000);
+
+    char msg3[] = "Ouch!!!!";
+    shiftInMessage(pixels, msg3, sizeof(msg3));
+
+
 }
