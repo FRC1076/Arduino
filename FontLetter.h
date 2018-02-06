@@ -16,13 +16,12 @@
  #include <pins_arduino.h>
 #endif
 
-extern byte font8x8_basic[128][8];
-extern byte font8x8_1076[98][8];
-
 class FontLetter {
   public:
-    FontLetter(char c, byte p[], uint8_t sz);
+    FontLetter(char c);       // instantiate the Font 
     uint8_t size();
+    byte column(byte index);
+    //
     //
     //   Start right to left column iteration and
     //   return the first(last) column.
