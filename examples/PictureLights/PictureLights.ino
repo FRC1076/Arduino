@@ -20,7 +20,8 @@
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS         256
 #define PIXELSPERCOLUMN     8
-#define NUMCOLUMNS       (256/8)
+#define COLUMNSPERGLYPH     8
+#define DISPLAYCOLUMNS   (256/8)
 #define NUMCOLORS           5
 
 
@@ -127,7 +128,7 @@ void loadArrayPicture(Adafruit_NeoPixel &pixels, byte *picture) {
 //
 // Reading image from pixel memory, shift it off to the right
 //
-void shiftPicture(Adafruit_NeoPixel &pixels, byte shift_in_column, uint32_t color) {
+void shiftPicture(Adafruit_NeoPixel &pixels, const GlyphColumn &shift_in_column, uint32_t color) {
   for(int r=0; r<32; r++) {
     shiftColumn(pixels, r);
   }
@@ -136,8 +137,8 @@ void shiftPicture(Adafruit_NeoPixel &pixels, byte shift_in_column, uint32_t colo
   //  It is represented as a byte instead of an array...
   //
   byte sel;
-  for(int i=0,sel=0x1; i<PIXELSPERCOLUMN; i++,sel=sel<<1) {
-    if (shift_in_column & sel) {
+  for(int i=0; i<PIXELSPERCOLUMN; i++) {
+    if (shift_in_column.row(7-i) > 0) {
       pixels.setPixelColor(NUMPIXELS-i-1, color);
     } else {
       pixels.setPixelColor(NUMPIXELS-i-1, pixels.Color(0,0,0));
@@ -238,13 +239,18 @@ void setup() {
 //
 //
 void shiftInMessage(Adafruit_NeoPixel &pixels, char *message) {
-    for (int letter_index = 0; message[letter_index]!=NULL; letter_index++) {
-      FontGlyph *glyph = font.glyph(message[letter_index]);
+    for (char m=' '; m!='~'; m++) {
+      FontGlyph *glyph = font.glyph(m);
 
       // shift in the glyph one column at a time
-      for (int col=0; col<8; col++) {
+      for (int col=0; col<COLUMNSPERGLYPH; col++) {
+        char buf[32];
+        sprintf(buf, "%c[%d]: 0x%x", m, col, glyph->column(col).data());
+        Serial.println(buf);
         shiftPicture(pixels, glyph->column(col), pixels.Color(5, 0, 5));
       }
+      // Put in a spacer between each letter
+      shiftPicture(pixels, GlyphColumn(0), pixels.Color(0, 0, 0));    
       delay(33);
     }
 }
@@ -280,7 +286,7 @@ void loop() {
     Serial.println("error opening test.txt");
   } */
 
-  char *msg = "0";
+  char *msg = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 9";
   shiftInMessage(pixels, msg);
 
   delay(2000);
