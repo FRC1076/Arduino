@@ -44,7 +44,7 @@ public:
 	GlyphColumn(byte mono_bits);     // set up for single bit BW (fits in single byte)
 	GlyphColumn(const GlyphColumn &gc);
 	GlyphColumn(void);
-	byte row(byte row_index);        // return the nibble 0 to 7 for this column
+	byte row(byte row_index) const;        // return the nibble 0 to 7 for this column
 	byte data(void);
 private:
 	byte _font_data;   // single bit per pixel (BW) makes one byte
@@ -63,7 +63,7 @@ public:
 			  GlyphColumn c5,
 			  GlyphColumn c6,
 			  GlyphColumn c7);
-	GlyphColumn *column(byte index);
+	GlyphColumn &column(byte index);
 private:
 	GlyphColumn _columns[FONT_WIDTH];
 };

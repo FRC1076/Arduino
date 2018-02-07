@@ -21,7 +21,7 @@ def substituteBW(value):
 # font_def[2] is an interator over the rows in the image
 # font_def[3] is a dictionary of the meta information (palette, etc...)
 #
-r=png.Reader('samsho3-Samurai Shodown 3 (SNK).png')
+r=png.Reader('samsho3-fonts.png')
 font_def=r.read()
 
 num_glyphs = font_def[0] // 8
@@ -78,10 +78,10 @@ for letter in font_set:
     pgm = "  FontGlyph("
     cc_count = 0
     for column in letter:
-        pgm += "GC("
+        pgm += "GC(0b"
         # This takes care of the first 7
         for value in column[0:7]:
-            pgm += "{},".format(substituteBW(value))
+            pgm += "{}".format(substituteBW(value))
 
         # special case for end of the line takes care of the last one
         if cc_count==7:
