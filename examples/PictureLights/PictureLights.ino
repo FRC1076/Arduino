@@ -15,26 +15,88 @@
 
 // Which pin on the Arduino is connected to the NeoPixels?
 // On a Trinket or Gemma we suggest changing this to 1
-#define PIN            6
+#define PIN0            6
+#define PIN1            7
 
-// How many NeoPixels are attached to the Arduino?
+//
+// How many NeoPixels are attached to each Pin?
+//
 #define NUMPIXELS         256
 #define PIXELSPERCOLUMN     8
 #define COLUMNSPERGLYPH     8
-#define DISPLAYCOLUMNS   (256/8)
-#define NUMCOLORS           5
+#define DISPLAYCOLUMNS   (NUMPIXELS/8)
+
+#define NEO_COLOR(r,g,b)    (uint32_t)(((uint32_t)r<<16)|((uint32_t)g<<8)|(uint32_t)b)
+#define NUMDISPLAYS         2
 
 
 // When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
 // Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
 // example for more information on possible values.
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-Palette palette(String('mono'));
-PaletteFont font(String('Samurai3'));
+Adafruit_NeoPixel pixels[NUMDISPLAYS] = {
+        Adafruit_NeoPixel(NUMPIXELS, PIN0, NEO_GRB + NEO_KHZ800),
+        Adafruit_NeoPixel(NUMPIXELS, PIN1, NEO_GRB + NEO_KHZ800)
+};
 
-uint32_t colors[NUMCOLORS];
+/* This array is a simple representation of the color palette we use. */
+uint32_t colors[] = {
+        0x0,
+        0x080803,
+        0x090202,
+        0x0c0801,
+        0x0f0f00
+};
+
+#define NUMCOLORS  (sizeof(colors)/sizeof(uint32_t))
+
+/* GlyphColumn32 supports 16 color encoding so the
+ * enter 8-bit column fits into 32bit quantity.
+ * This means only 1024 bytes for a full panel of image
+ * data and 64bytes for a full palette of 16 colors.
+ */
+GlyphColumn32 column_data[NUMDISPLAYS][16] = {
+  {
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 3),
+    GC32(0, 0, 1, 0, 0, 0, 0, 3),
+    GC32(0, 0, 0, 1, 0, 2, 2, 3),
+    GC32(0, 0, 0, 0, 1, 2, 2, 2),
+    GC32(0, 0, 0, 0, 0, 2, 2, 3),
+    GC32(0, 0, 0, 0, 1, 2, 2, 3),
+    GC32(0, 0, 0, 1, 0, 2, 2, 3),
+    GC32(0, 0, 1, 0, 0, 2, 2, 2),
+    GC32(0, 0, 0, 0, 0, 2, 2, 2),
+    GC32(0, 0, 0, 0, 0, 2, 2, 2),
+    GC32(0, 0, 0, 0, 0, 2, 2, 2),
+    GC32(0, 0, 0, 0, 0, 0, 0, 2),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+  },
+  {
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(0, 0, 2, 0, 1, 1, 0, 0),
+    GC32(3, 3, 2, 0, 1, 1, 0, 0),
+    GC32(2, 2, 2, 0, 4, 4, 0, 0),
+    GC32(0, 0, 2, 0, 1, 1, 0, 0),
+    GC32(0, 0, 2, 0, 1, 1, 0, 0),
+    GC32(3, 3, 2, 0, 4, 4, 0, 0),
+    GC32(2, 2, 2, 0, 1, 1, 0, 0),
+    GC32(2, 2, 2, 0, 1, 1, 0, 0),
+    GC32(2, 2, 2, 0, 4, 4, 0, 0),
+    GC32(2, 2, 2, 0, 1, 1, 0, 0),
+    GC32(2, 2, 2, 0, 1, 1, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+  },
+};
+
+#define PICTURECOLUMNS (sizeof(column_data) / sizeof(GlyphColumn32) / NUMDISPLAYS)
 
 // Transform the data to serpentine to make the array look like the display
+// This makes it easier to manually enter of graphical data.
 #define DATR(a, b, c, d, e, f, g, h)  h,g,f,e,d,c,b,a
 #define DATF(a, b, c, d, e, f, g, h)  a,b,c,d,e,f,g,h
 
@@ -42,8 +104,6 @@ uint32_t colors[NUMCOLORS];
 // Define the picture (along with a column for inbound and for outbound) data
 // that could be used for shifting data into the image_data.   Not sure how I
 // would be able to use that yet, but I think it might be handy for something.
-
-
 /*
 byte picture[NUMPIXELS] = 
                           {    // InBound buffer of 8
@@ -129,7 +189,7 @@ void loadArrayPicture(Adafruit_NeoPixel &pixels, byte *picture) {
 // Reading image from pixel memory, shift it off to the right
 //
 void shiftPicture(Adafruit_NeoPixel &pixels, const GlyphColumn &shift_in_column, uint32_t color) {
-  for(int r=0; r<32; r++) {
+  for(int r=0; r<DISPLAYCOLUMNS; r++) {
     shiftColumn(pixels, r);
   }
   //
@@ -154,7 +214,7 @@ void shiftPicture(Adafruit_NeoPixel &pixels, const GlyphColumn &shift_in_column,
 // Reading image from pixel memory, shift it off to the right
 //
 void shiftPicture(Adafruit_NeoPixel &pixels, byte *shift_in_column, Palette &pal) {
-  for(int r=0; r<32; r++) {
+  for(int r=0; r<DISPLAYCOLUMNS; r++) {
     shiftColumn(pixels, r);
   }
   //
@@ -172,13 +232,35 @@ void shiftPicture(Adafruit_NeoPixel &pixels, byte *shift_in_column, Palette &pal
 
 }
 
+//
+// Reading image from pixel memory, shift it off to the right
+//
+void shiftPicture(Adafruit_NeoPixel &pixels, const GlyphColumn32 &col, uint32_t *pal) {
+  
+  // move over the contents of the display by 1 pixel
+  for(int r=0; r<DISPLAYCOLUMNS; r++) {
+    shiftColumn(pixels, r);
+  }
+  
+  //
+  //  Shift in some data into the first column (vacated by the shift)
+  //  It is represented as a byte instead of an array...
+  //  Note we apply the mapping from the color index to the full Neo color
+  //  at this point.
+  //
+  for(int i=0; i<PIXELSPERCOLUMN; i++) {
+      //char buf[100];
+      pixels.setPixelColor(NUMPIXELS-i-1, pal[col.row(i)]);
+      //sprintf(buf, "col.data() = 0x%x pal[col.row(%d)] = 0x%x", col.data(), i, pal[col.row(i)]);
+      //Serial.println(buf);
+  }
+}
+
 void shiftColumn(Adafruit_NeoPixel &pixels, int column) {
   
-  // toss in order column data to ooo column (and vice versa)
+  // toss in-order column data to ooo column (and vice versa)
   int src_btm = column*8;           //-- first in column
-  int src_top = src_btm+7;          //-- last in column
-  int dest_btm = src_btm-8;         //-- first in dest column
-  int dest_top = dest_btm+7;        //-- last in dest column
+  int dest_top = src_btm-1;         //-- last in dest column
 
   //
   // transfer data starting at first src element (increasing index)
@@ -212,16 +294,35 @@ void rotate_font(byte *font, byte *rotated) {
   }
 }
 
-void setup() {
-  pixels.begin(); // This initializes the NeoPixel library.
+boolean
+GlyphColumn32_self_test(void) {
 
-  colors[0] = pixels.Color(10,  0,  3);
-  colors[1] = pixels.Color(0,  0,  0);    //  red
-  colors[2] = pixels.Color(1,  1,  3);    //  green (zig zag?)
-  colors[3] = pixels.Color(0,  0,  3);    //  blue
-  colors[4] = pixels.Color(5,  5,  0);
+  GlyphColumn32 gc = GC32(0,1,2,3,4,5,6,7);
+  boolean pass = true;
+
+  for (int i=0; i<8; i++) {
+    char buf[100];
+    if (gc.row(i) != i) {
+      sprintf(buf, "In gc.data() = 0x%x gc.row(%d) != %d\n", gc.data(), i, i);
+      Serial.println(buf);
+      pass = false;
+    }
+  }
+
+  return pass;
+}
+
+
+void setup() {
+  pixels[0].begin();
+  pixels[1].begin();
 
   Serial.begin(9600);
+  Serial.write("Setup done!");
+
+  if (GlyphColumn32_self_test()) {
+    Serial.println("GlyphColumn32 self-test passed!");
+  }
 
   // For a set of NeoPixels the first NeoPixel is 0, second is 1
   //loadPicture(pixels, picture);
@@ -233,26 +334,6 @@ void setup() {
   // Ths is required for MEGA compatibility with the SD reader?
   //pinMode(SS, OUTPUT);
 
-  
-}
-
-//
-//
-void shiftInMessage(Adafruit_NeoPixel &pixels, char *message) {
-    for (char m=' '; m!='~'; m++) {
-      FontGlyph *glyph = font.glyph(m);
-
-      // shift in the glyph one column at a time
-      for (int col=0; col<COLUMNSPERGLYPH; col++) {
-        char buf[32];
-        sprintf(buf, "%c[%d]: 0x%x", m, col, glyph->column(col).data());
-        Serial.println(buf);
-        shiftPicture(pixels, glyph->column(col), pixels.Color(5, 0, 5));
-      }
-      // Put in a spacer between each letter
-      shiftPicture(pixels, GlyphColumn(0), pixels.Color(0, 0, 0));    
-      delay(33);
-    }
 }
 
 void loop() {
@@ -285,10 +366,17 @@ void loop() {
     // if the file didn't open, print an error:
     Serial.println("error opening test.txt");
   } */
-
-  char *msg = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 9";
-  shiftInMessage(pixels, msg);
-
-  delay(2000);
-
+  for (int pc=0; pc<16; pc++) {
+    for (int d=0; d<2; d++) {
+      char buf[100];
+      sprintf(buf, "column_data[%d][%pc] = 0x%x\n", d, pc, column_data[d][pc].data());
+      Serial.print(buf);
+      shiftPicture(pixels[d], column_data[d][pc], colors);
+      pixels[d].show();
+    }
+    delay(10);
+  }
+  for (int d=0; d<2; d++) {
+    shiftPicture(pixels[d], GlyphColumn32(0), colors);
+  }
 }
