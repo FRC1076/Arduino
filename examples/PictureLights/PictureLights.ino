@@ -303,7 +303,7 @@ GlyphColumn32_self_test(void) {
   for (int i=0; i<8; i++) {
     char buf[100];
     if (gc.row(i) != i) {
-      sprintf(buf, "In gc.data() = 0x%x gc.row(%d) != %d\n", gc.data(), i, i);
+      sprintf(buf, "In gc.data() = 0x%lx gc.row(%d) != %d\n", gc.data(), i, i);
       Serial.println(buf);
       pass = false;
     }
@@ -369,7 +369,7 @@ void loop() {
   for (int pc=0; pc<16; pc++) {
     for (int d=0; d<2; d++) {
       char buf[100];
-      sprintf(buf, "column_data[%d][%pc] = 0x%x\n", d, pc, column_data[d][pc].data());
+      sprintf(buf, "column_data[%d][%d] = 0x%x\n", d, pc, column_data[d][pc].data());
       Serial.print(buf);
       shiftPicture(pixels[d], column_data[d][pc], colors);
       pixels[d].show();

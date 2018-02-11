@@ -63,10 +63,10 @@ GlyphColumn32::row(byte row_index) const {
 	}
 	// extract nibble from the 32-bit quantity
 	// generate 4-bit mask, apply it, and shift it down
-	byte nib = 0xff;   // grab nibble
+	byte nib = 0xf;   // grab nibble
 	byte shift = 4 * (7 - row_index);  /* (0=>28, 1=>24 ... 7=>0)  */
 	uint32_t masked_data = (nib << shift) & _font_data;
-	return (byte)(masked_data >> shift);
+	return (byte)((_font_data >> shift) & nib);
 }
 
 // single byte can represent a column of two color values
