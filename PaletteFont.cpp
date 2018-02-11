@@ -51,6 +51,41 @@ GlyphColumn::data(void) {
 	return _font_data;
 }
 
+
+//
+//  Provide means to individually extract nibble values
+//  (8 values encoded in a single uint32_t)
+//
+byte
+GlyphColumn32::row(byte row_index) const {
+	if (row_index > 8) {
+		return 0;
+	}
+	// extract nibble from the 32-bit quantity
+	// generate 4-bit mask, apply it, and shift it down
+	byte nib = 0xff;   // grab nibble
+	byte shift = 4 * (7 - row_index);  /* (0=>28, 1=>24 ... 7=>0)  */
+	uint32_t masked_data = (nib << shift) & _font_data;
+	return (byte)(masked_data >> shift);
+}
+
+// single byte can represent a column of two color values
+GlyphColumn32::GlyphColumn32(uint32_t column) : _font_data(column) { }
+
+GlyphColumn32::GlyphColumn32(const GlyphColumn32 &gc) : _font_data(gc._font_data) { }
+
+GlyphColumn32::GlyphColumn32(void) : _font_data(0) { }
+
+uint32_t
+GlyphColumn32::data(void) {
+	return _font_data;
+}
+
+GlyphColumn32 &
+GlyphColumn32::operator=(const GlyphColumn32 &lhs) {
+	this->_font_data = lhs._font_data;
+}
+
 //
 //  If the column_index is a byte, then we assume we
 //  are doing BW image and so need to extract the info
@@ -69,14 +104,14 @@ GlyphColumn::row(byte row_index) const {
 	}
 }
 
-FontGlyph::FontGlyph(GlyphColumn c0,
-					 GlyphColumn c1,
-					 GlyphColumn c2,
-					 GlyphColumn c3,
-					 GlyphColumn c4,
-					 GlyphColumn c5,
-					 GlyphColumn c6,
-					 GlyphColumn c7) {
+FontGlyph::FontGlyph(const GlyphColumn &c0,
+					 const GlyphColumn &c1,
+					 const GlyphColumn &c2,
+					 const GlyphColumn &c3,
+					 const GlyphColumn &c4,
+					 const GlyphColumn &c5,
+					 const GlyphColumn &c6,
+					 const GlyphColumn &c7) {
 	_columns[0] = c0;
 	_columns[1] = c1;
 	_columns[2] = c2;

@@ -18,12 +18,12 @@
 
 class Palette {
 	String _name;
-	byte _size;          /* let us limit the palette to 2 colors */
-	uint32_t *_palette;  /* initialized to colors array manually */
+	byte _size;                   /* let us limit the palette to 2 colors */
 public:
 	Palette(String name);
 	String name(void);
-	uint32_t color(byte index);  // color by color index from the palette
+	uint32_t *_palette;           /* initialized to colors array manually */
+	uint32_t color(byte index);   // color by color index from the palette
 };
 
 //
@@ -31,7 +31,14 @@ public:
 //  This permits the GlyphColumn to represent each column with only
 //  8 nibbles.
 //
-//#define G_C(a,b,c,d,e,f,g,h)  GlyphColumn((a|b<<8),(c|d<<8),(e|f<<8),(g|h<<8))
+#define GC32(a,b,c,d,e,f,g,h)  GlyphColumn32((uint32_t)((uint32_t)a)<<28 | \
+													   ((uint32_t)b)<<24 | \
+													   ((uint32_t)c)<<20 | \
+													   ((uint32_t)d)<<16 | \
+													   ((uint32_t)e)<<12 | \
+													   ((uint32_t)f)<<8  | \
+													   ((uint32_t)g)<<4  | \
+													   ((uint32_t)h))
 
 #define COLOR_BITS  4
 #define COLOR_DEPTH (COLOR_BITS<<1)
@@ -40,7 +47,6 @@ public:
 
 class GlyphColumn {
 public:
-	//GlyphColumn(byte r01, byte r23, byte r45, byte r67);
 	GlyphColumn(byte mono_bits);     // set up for single bit BW (fits in single byte)
 	GlyphColumn(const GlyphColumn &gc);
 	GlyphColumn(void);
@@ -50,19 +56,31 @@ private:
 	byte _font_data;   // single bit per pixel (BW) makes one byte
 };
 
+class GlyphColumn32 {
+public:
+	GlyphColumn32(uint32_t bits16);     // set up for 8 pixels of 16 bit paletted color
+	GlyphColumn32(const GlyphColumn32 &gc);
+	GlyphColumn32 &operator=(const GlyphColumn32 &gc);
+	GlyphColumn32(void);
+	byte row(byte row_index) const;        // return the nibble 0 to 7 for this column
+	uint32_t data(void);
+private:
+	uint32_t _font_data;   // single bit per pixel (BW) makes one byte
+};
+
 //
 //  A glyph consists of 8 columns of pixel/color data
 //
 class FontGlyph {
 public:
-	FontGlyph(GlyphColumn c0,
-			  GlyphColumn c1,
-			  GlyphColumn c2,
-			  GlyphColumn c3,
-			  GlyphColumn c4,
-			  GlyphColumn c5,
-			  GlyphColumn c6,
-			  GlyphColumn c7);
+	FontGlyph(const GlyphColumn &c0,
+			  const GlyphColumn &c1,
+			  const GlyphColumn &c2,
+			  const GlyphColumn &c3,
+			  const GlyphColumn &c4,
+			  const GlyphColumn &c5,
+			  const GlyphColumn &c6,
+			  const GlyphColumn &c7);
 	GlyphColumn &column(byte index);
 private:
 	GlyphColumn _columns[FONT_WIDTH];
