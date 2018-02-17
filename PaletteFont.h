@@ -16,15 +16,21 @@
  #include <pins_arduino.h>
 #endif
 
+#include <Adafruit_NeoPixel.h>
+
 class Palette {
 	String _name;
-	byte _size;                   /* let us limit the palette to 2 colors */
+	byte _size;                         /* set at creation time */
+	uint32_t *_palette;                 /* initialized to colors array in ctor   */
 public:
-	Palette(String name);
+	Palette::Palette(String name, uint32_t *colors=NULL, byte num_colors=5);
 	String name(void);
-	uint32_t *_palette;           /* initialized to colors array manually */
-	uint32_t color(byte index);   // color by color index from the palette
+	void dim(byte factor);              /* dim the entire palete by a factor     */
+	uint32_t color(byte index) const;   /* color by color index from the palette */
+	byte size(void);                    /* the number of colors in the palette   */
 };
+
+boolean Palette_dim_test(void);
 
 //
 //  Let's stick with 16 color palettes (working from reductions)
@@ -67,6 +73,8 @@ public:
 private:
 	uint32_t _font_data;   // single bit per pixel (BW) makes one byte
 };
+
+boolean GlyphColumn32_self_test(void);
 
 //
 //  A glyph consists of 8 columns of pixel/color data

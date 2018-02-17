@@ -1,6 +1,6 @@
 // PictureLights
 // Render bit pictures in 8x32 Neopixel matrix and
-// render shifting text.  (with bit font definitions)
+// render shifting text.  (with 4-bit (16 color) img definitions)
 
 #include <Adafruit_NeoPixel.h>
 #include "PaletteFont.h"
@@ -17,130 +17,100 @@
 // On a Trinket or Gemma we suggest changing this to 1
 #define PIN0            6
 #define PIN1            7
+#define PIN2            8
 
 //
 // How many NeoPixels are attached to each Pin?
 //
-#define NUMPIXELS         256
+#define NUMPIXELS         128
 #define PIXELSPERCOLUMN     8
 #define COLUMNSPERGLYPH     8
-#define DISPLAYCOLUMNS   (NUMPIXELS/8)
+#define DISPLAYCOLUMNS   (NUMPIXELS/PIXELSPERCOLUMN)
 
 #define NEO_COLOR(r,g,b)    (uint32_t)(((uint32_t)r<<16)|((uint32_t)g<<8)|(uint32_t)b)
-#define NUMDISPLAYS         2
 
 
 // When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
 // Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
 // example for more information on possible values.
-Adafruit_NeoPixel pixels[NUMDISPLAYS] = {
+Adafruit_NeoPixel pixels[] = {
         Adafruit_NeoPixel(NUMPIXELS, PIN0, NEO_GRB + NEO_KHZ800),
-        Adafruit_NeoPixel(NUMPIXELS, PIN1, NEO_GRB + NEO_KHZ800)
+        //Adafruit_NeoPixel(NUMPIXELS, PIN1, NEO_GRB + NEO_KHZ800),
+        //Adafruit_NeoPixel(NUMPIXELS, PIN2, NEO_GRB + NEO_KHZ800),
 };
 
+#define NUMDISPLAYS 1
+
+
 /* This array is a simple representation of the color palette we use. */
+/* uint32_t colors[] = {
+        0x0,
+        0xb8b8b3,
+        0xa92a2a,
+        0xece8b5,
+        0xfffff9,
+}; */
+
 uint32_t colors[] = {
         0x0,
-        0x080803,
-        0x090202,
-        0x0c0801,
-        0x0f0f00
+        0x0,
+        0x161616,
+        0xa0a0a,
+        0xacacac,
+        0x787878,
+        0xffcc08,
+        0xf4771f,
+        0x9a491d,
+        0x90c17,
+        0xffd807,
+        0xffd907,
+        0xf6811c,
+        0xf36d21,
+        0x434343,
+        0x3e2518
 };
 
 #define NUMCOLORS  (sizeof(colors)/sizeof(uint32_t))
+
+#define PICTURECOLUMNS 21
 
 /* GlyphColumn32 supports 16 color encoding so the
  * enter 8-bit column fits into 32bit quantity.
  * This means only 1024 bytes for a full panel of image
  * data and 64bytes for a full palette of 16 colors.
  */
-GlyphColumn32 column_data[NUMDISPLAYS][16] = {
+GlyphColumn32 column_data[2][21] = {
   {
-    GC32(0, 0, 0, 0, 0, 0, 0, 0),
-    GC32(0, 0, 0, 0, 0, 0, 0, 0),
-    GC32(0, 0, 0, 0, 0, 0, 0, 3),
-    GC32(0, 0, 1, 0, 0, 0, 0, 3),
-    GC32(0, 0, 0, 1, 0, 2, 2, 3),
-    GC32(0, 0, 0, 0, 1, 2, 2, 2),
-    GC32(0, 0, 0, 0, 0, 2, 2, 3),
-    GC32(0, 0, 0, 0, 1, 2, 2, 3),
-    GC32(0, 0, 0, 1, 0, 2, 2, 3),
-    GC32(0, 0, 1, 0, 0, 2, 2, 2),
-    GC32(0, 0, 0, 0, 0, 2, 2, 2),
-    GC32(0, 0, 0, 0, 0, 2, 2, 2),
-    GC32(0, 0, 0, 0, 0, 2, 2, 2),
-    GC32(0, 0, 0, 0, 0, 0, 0, 2),
-    GC32(0, 0, 0, 0, 0, 0, 0, 0),
-    GC32(0, 0, 0, 0, 0, 0, 0, 0),
-  },
-  {
-    GC32(0, 0, 0, 0, 0, 0, 0, 0),
-    GC32(0, 0, 0, 0, 0, 0, 0, 0),
-    GC32(0, 0, 0, 0, 0, 0, 0, 0),
-    GC32(0, 0, 2, 0, 1, 1, 0, 0),
-    GC32(3, 3, 2, 0, 1, 1, 0, 0),
-    GC32(2, 2, 2, 0, 4, 4, 0, 0),
-    GC32(0, 0, 2, 0, 1, 1, 0, 0),
-    GC32(0, 0, 2, 0, 1, 1, 0, 0),
-    GC32(3, 3, 2, 0, 4, 4, 0, 0),
-    GC32(2, 2, 2, 0, 1, 1, 0, 0),
-    GC32(2, 2, 2, 0, 1, 1, 0, 0),
-    GC32(2, 2, 2, 0, 4, 4, 0, 0),
-    GC32(2, 2, 2, 0, 1, 1, 0, 0),
-    GC32(2, 2, 2, 0, 1, 1, 0, 0),
-    GC32(0, 0, 0, 0, 0, 0, 0, 0),
-    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(1, 1, 1, 1, 1, 1, 1, 1),
+    GC32(1, 1, 1, 1, 1, 1, 1, 1),
+    GC32(1, 1, 1, 1, 1, 1, 1, 1),
+    GC32(1, 1, 1, 1, 1, 1, 1, 1),
+    GC32(1, 1, 1, 1, 1, 1, 1, 1),
+    GC32(3, 3, 3, 3, 3, 3, 3, 14),
+    GC32(6, 6, 6, 6, 6, 12, 3, 3),
+    GC32(6, 6, 2, 2, 10, 12, 3, 15),
+    GC32(6, 6, 6, 6, 6, 12, 3, 15),
+    GC32(6, 6, 6, 6, 6, 12, 3, 3),
+    GC32(6, 6, 9, 9, 11, 12, 3, 16),
+    GC32(6, 6, 6, 6, 6, 12, 3, 3),
+    GC32(6, 6, 6, 6, 6, 12, 3, 17),
+    GC32(6, 6, 6, 6, 6, 12, 3, 15),
+    GC32(7, 7, 7, 7, 7, 13, 3, 3),
+    GC32(8, 8, 8, 8, 8, 8, 3, 18),
+    GC32(3, 3, 3, 3, 3, 3, 3, 19),
+    GC32(1, 1, 1, 1, 1, 1, 1, 1),
+    GC32(1, 1, 1, 1, 1, 1, 1, 1),
+    GC32(1, 1, 1, 1, 1, 1, 1, 1),
+    GC32(1, 1, 1, 1, 1, 1, 1, 1),
   },
 };
-
-#define PICTURECOLUMNS (sizeof(column_data) / sizeof(GlyphColumn32) / NUMDISPLAYS)
 
 // Transform the data to serpentine to make the array look like the display
 // This makes it easier to manually enter of graphical data.
 #define DATR(a, b, c, d, e, f, g, h)  h,g,f,e,d,c,b,a
 #define DATF(a, b, c, d, e, f, g, h)  a,b,c,d,e,f,g,h
 
-//
-// Define the picture (along with a column for inbound and for outbound) data
-// that could be used for shifting data into the image_data.   Not sure how I
-// would be able to use that yet, but I think it might be handy for something.
-/*
-byte picture[NUMPIXELS] = 
-                          {    // InBound buffer of 8
-                            DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATR(0, 0, 1, 1, 1, 0, 1, 1),
-                            DATF(0, 0, 0, 0, 0, 0, 0, 1),
-                            DATR(0, 0, 0, 0, 0, 0, 0, 0),
-                            DATF(0, 0, 0, 0, 0, 0, 0, 0),
-                            DATR(0, 0, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATR(1, 0, 0, 0, 0, 0, 0, 1),
-                            DATF(0, 0, 0, 0, 0, 0, 0, 0),
-                            DATR(0, 0, 1, 1, 1, 1, 0, 0),
-                            DATF(0, 0, 1, 1, 1, 1, 0, 0),
-                            DATR(0, 0, 0, 0, 0, 0, 0, 0),
-                            DATF(1, 0, 0, 0, 0, 0, 0, 1),
-                            DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 2, 1),
-                            DATR(2, 2, 2, 1, 1, 1, 2, 2),
-                            DATF(2, 2, 2, 2, 1, 1, 2, 2),
-                            DATR(1, 1, 1, 2, 2, 1, 2, 2),
-                            DATF(1, 1, 1, 1, 2, 2, 2, 2),
-                            DATR(1, 1, 1, 1, 1, 2, 2, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1),                            
-                            DATR(1, 0, 0, 0, 0, 0, 0, 1),
-                            DATF(0, 0, 0, 0, 0, 0, 0, 0),
-                            DATR(0, 0, 1, 1, 0, 1, 0, 0),
-                            DATF(0, 0, 1, 1, 0, 1, 0, 0),
-                            DATR(0, 0, 0, 0, 0, 1, 0, 0),
-                            DATF(1, 0, 0, 0, 1, 1, 0, 1),
-                            DATR(1, 1, 1, 1, 1, 1, 1, 1),
-                            DATF(1, 1, 1, 1, 1, 1, 1, 1) };  // Outbound buffer of 8  */
-
-                            
+                          
 void loadSerpentinePicture(Adafruit_NeoPixel &pixels, byte *picture) {
   //
   // If data is stored in Serpentine form, then we can just
@@ -165,7 +135,7 @@ void loadPicture(Adafruit_NeoPixel &pixels, byte *picture) {
 //
 void loadArrayPicture(Adafruit_NeoPixel &pixels, byte *picture) {
 
-  int num_groups = NUMPIXELS / 16;
+  int num_groups = DISPLAYCOLUMNS / 2;
 
   for (int group=0; group < num_groups; group++) {
     // reverse the first 8 in the group so it loads like the data looks
@@ -183,6 +153,7 @@ void loadArrayPicture(Adafruit_NeoPixel &pixels, byte *picture) {
   }
 
   pixels.show();
+
 }
 
 //
@@ -235,7 +206,7 @@ void shiftPicture(Adafruit_NeoPixel &pixels, byte *shift_in_column, Palette &pal
 //
 // Reading image from pixel memory, shift it off to the right
 //
-void shiftPicture(Adafruit_NeoPixel &pixels, const GlyphColumn32 &col, uint32_t *pal) {
+void shiftPicture(Adafruit_NeoPixel &pixels, const GlyphColumn32 &col, const Palette &pal) {
   
   // move over the contents of the display by 1 pixel
   for(int r=0; r<DISPLAYCOLUMNS; r++) {
@@ -250,7 +221,7 @@ void shiftPicture(Adafruit_NeoPixel &pixels, const GlyphColumn32 &col, uint32_t 
   //
   for(int i=0; i<PIXELSPERCOLUMN; i++) {
       //char buf[100];
-      pixels.setPixelColor(NUMPIXELS-i-1, pal[col.row(i)]);
+      pixels.setPixelColor(NUMPIXELS-i-1, pal.color(col.row(i)));
       //sprintf(buf, "col.data() = 0x%x pal[col.row(%d)] = 0x%x", col.data(), i, pal[col.row(i)]);
       //Serial.println(buf);
   }
@@ -294,34 +265,22 @@ void rotate_font(byte *font, byte *rotated) {
   }
 }
 
-boolean
-GlyphColumn32_self_test(void) {
-
-  GlyphColumn32 gc = GC32(0,1,2,3,4,5,6,7);
-  boolean pass = true;
-
-  for (int i=0; i<8; i++) {
-    char buf[100];
-    if (gc.row(i) != i) {
-      sprintf(buf, "In gc.data() = 0x%lx gc.row(%d) != %d\n", gc.data(), i, i);
-      Serial.println(buf);
-      pass = false;
-    }
-  }
-
-  return pass;
-}
 
 
 void setup() {
-  pixels[0].begin();
-  pixels[1].begin();
+  for (int i=0; i<NUMDISPLAYS; i++) {
+    pixels[i].begin();
+  } 
 
   Serial.begin(9600);
   Serial.write("Setup done!");
 
   if (GlyphColumn32_self_test()) {
     Serial.println("GlyphColumn32 self-test passed!");
+  }
+
+  if (!Palette_dim_test()) {
+    Serial.println("Palette_dim_test failed!");
   }
 
   // For a set of NeoPixels the first NeoPixel is 0, second is 1
@@ -366,17 +325,34 @@ void loop() {
     // if the file didn't open, print an error:
     Serial.println("error opening test.txt");
   } */
-  for (int pc=0; pc<16; pc++) {
-    for (int d=0; d<2; d++) {
-      char buf[100];
-      sprintf(buf, "column_data[%d][%d] = 0x%x\n", d, pc, column_data[d][pc].data());
-      Serial.print(buf);
-      shiftPicture(pixels[d], column_data[d][pc], colors);
+  Palette neo_pal("Robot1", colors, sizeof(colors)/sizeof(uint32_t));
+  neo_pal.dim(3);
+
+  for (int pc=0; pc<PICTURECOLUMNS; pc++) {
+    for (int d=0; d<NUMDISPLAYS; d++) {
+      //char buf[100];
+      //sprintf(buf, "column_data[%d][%d] = 0x%x\n", d, pc, column_data[d][pc].data());
+      //Serial.print(buf);
+      shiftPicture(pixels[d], column_data[d][pc], neo_pal);
       pixels[d].show();
     }
-    delay(10);
+    delay(1);
   }
-  for (int d=0; d<2; d++) {
-    shiftPicture(pixels[d], GlyphColumn32(0), colors);
+
+  neo_pal.dim(1);
+
+  /* add some padding to center the image on the display */
+  for (int j=0; j<(DISPLAYCOLUMNS-PICTURECOLUMNS)/2; j++) {
+    for (int d=0; d<NUMDISPLAYS; d++) {
+      shiftPicture(pixels[d], GlyphColumn32(0), neo_pal);
+      pixels[d].show();
+    }
+    delay(1);
   }
+
+  /* wait for a time.   Of course, this is too long.  */
+  delay(2000);
+
+  // dim the palette by 1/2 and see how it changes things
+  //neo_pal.dim(1);
 }

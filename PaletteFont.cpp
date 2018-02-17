@@ -1,3 +1,5 @@
+#include <Adafruit_NeoPixel.h>
+#include <Arduino1076.h>
 #include <PaletteFont.h>
 //
 // Constant: font8x8_1076
@@ -8,17 +10,19 @@
 // Font is rotation of that published by:
 // And subsequently mapped to font8x8_basic by:
 // black and purple for now
-static uint32_t MonoPurple[] = {
-    0x000000,
-    0x050005
-};
 
-Palette::Palette(String name) : _name(name), _palette(MonoPurple) {
-	_size = sizeof(MonoPurple) / sizeof(uint32_t);
+Palette::Palette(String name, uint32_t *colors=NULL, byte num_colors=5) : _name(name) {
+  if (colors == NULL) {
+    _palette = MonoPurple;
+	  _size = sizeof(MonoPurple) / sizeof(uint32_t);
+  } else {
+    _palette = colors;
+    _size = num_colors;
+  }
 }
 
 uint32_t
-Palette::color(byte index) {
+Palette::color(byte index) const {
 	if (index < 0 || index >= _size) {
 		return 0x000100;           // ghost color (very dim green)
 	} else {
@@ -30,6 +34,47 @@ String
 Palette::name(void) {
 	return _name;
 }
+
+byte
+Palette::size(void) {
+  return _size;
+}
+
+void
+Palette::dim(byte factor) {
+  for (int c; c<_size; c++) {
+    byte r = _palette[c]>>16 & 0xff;
+    byte g = _palette[c]>>8 & 0xff;
+    byte b = _palette[c] & 0xff;
+    r>>=factor; g>>=factor; b>>=factor;
+    _palette[c] = Adafruit_NeoPixel::Color(r, g, b);
+  }
+}
+
+boolean
+Palette_dim_test(void) {
+
+  uint32_t colors[] = {
+        0x0,
+        0x080803,
+        0x090202,
+        0x0c0805,
+        0x0f0f0d,
+  };
+
+  Palette st_pal("Self Test", colors, sizeof(colors)/sizeof(uint32_t));
+  boolean pass = true;
+
+  pass = pass && assert("st_pal.color(0) == 0", st_pal.color(0) == 0);
+  pass = pass && assert("st_pal.color(1) == 0x080803", st_pal.color(1) == 0x080803);
+
+  st_pal.dim(1);
+
+  pass = pass && assert("st_pal.color(1) == 0x040401", st_pal.color(1) == 0x040401);
+
+  return pass;
+}
+
 
 // assemble the 0 or 1 color values into a binary byte (using preprocessor concatentation)
 //#define GC(a,b,c,d,e,f,g,h) GlyphColumn((byte)a|(byte)b<<4|(byte)c<<8|(byte)d<<12|(byte)e<<16|(byte)f<<20|(byte)g<<24|(byte)h<<28)
@@ -61,12 +106,9 @@ GlyphColumn32::row(byte row_index) const {
 	if (row_index > 8) {
 		return 0;
 	}
-	// extract nibble from the 32-bit quantity
-	// generate 4-bit mask, apply it, and shift it down
-	byte nib = 0xf;   // grab nibble
+	// shift and mask lower 4 bits
 	byte shift = 4 * (7 - row_index);  /* (0=>28, 1=>24 ... 7=>0)  */
-	uint32_t masked_data = (nib << shift) & _font_data;
-	return (byte)((_font_data >> shift) & nib);
+	return (byte)((_font_data >> shift) & 0xf);
 }
 
 // single byte can represent a column of two color values
@@ -85,6 +127,26 @@ GlyphColumn32 &
 GlyphColumn32::operator=(const GlyphColumn32 &lhs) {
 	this->_font_data = lhs._font_data;
 }
+
+
+boolean
+GlyphColumn32_self_test(void) {
+
+  GlyphColumn32 gc = GC32(0,1,2,3,4,5,6,7);
+  boolean pass = true;
+
+  for (int i=0; i<8; i++) {
+    char buf[100];
+    if (gc.row(i) != i) {
+      sprintf(buf, "In gc.data() = 0x%lx gc.row(%d) != %d\n", gc.data(), i, i);
+      Serial.println(buf);
+      pass = false;
+    }
+  }
+
+  return pass;
+}
+
 
 //
 //  If the column_index is a byte, then we assume we
