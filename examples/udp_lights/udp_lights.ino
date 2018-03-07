@@ -9,6 +9,7 @@
 #define PIXEL_PIN    6    // Digital IO pin connected to the NeoPixels.
 #define PIXEL_COUNT 100
 #define UDP_PACKET_MAX_SIZE 128
+#define RETRO_LIGHTS 2
 
 // Parameter 1 = number of pixels in strip,  neopixel stick has 8
 // Parameter 2 = pin number (most are valid)
@@ -42,6 +43,7 @@ void setup() {
   Ethernet.begin(mac, ip);
   Udp.begin(localPort);
   strip.begin();
+  startShow(RETRO_LIGHTS);
   strip.show(); // Initialize all pixels to 'off'
   Serial.begin(9600);
 }
@@ -66,24 +68,21 @@ void loop() {
 
     // read the packet into packetBufffer
     Udp.read(packetBuffer, UDP_PACKET_MAX_SIZE);
+    packetBuffer[packetSize] = '\0';    // mark the end of the buffer
     Serial.println("Contents:");
     Serial.println(packetBuffer);
     String stringBuffer(packetBuffer);
-    //showType = stringBuffer.toInt();   
+    //showType = stringBuffer.toInt();
 
+    DynamicJsonBuffer jsonBuffer;
+    String input = stringBuffer;
+    JsonObject& root = jsonBuffer.parseObject(input);
 
-  DynamicJsonBuffer jsonBuffer;
-
-  // You can use a String as your JSON input.
-  // WARNING: the content of the String will be duplicated in the JsonBuffer.
-  String input = stringBuffer;
-  JsonObject& root = jsonBuffer.parseObject(input);
-
-  // You can use a String to get an element of a JsonObject
-  // No duplication is done.
-   String message = root[String("message")];
-   int show_index = root[String("show-index")];
-Serial.println(message);
+    // You can use a String to get an element of a JsonObject
+    // No duplication is done.
+    String message = root[String("message")];
+    int show_index = root[String("show-index")];
+   //Serial.println(message);
 
 
 
@@ -99,19 +98,19 @@ Serial.println(message);
 
 void startShow(int i) {
   switch(i){
-    case 0: colorWipe(strip.Color(0, 0, 0), 50);    // Black/off
+    case 0: colorWipe(strip.Color(0, 0, 0), 50);      // Black/off
             break;
-    case 1: colorWipe(strip.Color(255, 0, 0), 50);  // Red
+    case 1: colorWipe(strip.Color(15, 0, 15), 50);    // Light Purple
             break;
-    case 2: colorWipe(strip.Color(0, 255, 0), 50);  // Green
+    case RETRO_LIGHTS: colorWipe(strip.Color(0, 150, 0), 1);  // Green
             break;
-    case 3: colorWipe(strip.Color(0, 0, 255), 50);  // Blue
+    case 3: colorWipe(strip.Color(0, 0, 5), 50);  // Blue
             break;
     case 4: theaterChase(strip.Color(127, 127, 127), 50); // White
             break;
     case 5: theaterChase(strip.Color(127,   0,   0), 50); // Red
             break;
-    case 6: theaterChase(strip.Color(  0,   0, 127), 50); // Blue
+    case 6: theaterChase(strip.Color(127,   0, 127), 50); // Deep Purple
             break;
     case 7: rainbow(20);
             break;
