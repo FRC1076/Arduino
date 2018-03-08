@@ -38,7 +38,7 @@ print("};")
 img_data = list(font_def[2])
 
 # try the second one (slice off a font's worth of data)
-font = img_data[8:16]
+font = img_data[]
 
 #
 #  Rotate the font so it can shift in from the right
