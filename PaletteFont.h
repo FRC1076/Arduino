@@ -50,6 +50,8 @@ boolean Palette_dim_test(void);
 #define COLOR_DEPTH (COLOR_BITS<<1)
 #define FONT_WIDTH  8
 #define FONT_HEIGHT 8
+#define FIRST_GLYPH_CHAR 23      /* update this as new characters added */
+
 
 class GlyphColumn {
 public:
@@ -95,13 +97,34 @@ private:
 };
 
 
+//
+//  A glyph consists of 8 columns of pixel/color data
+//
+class FontGlyph32 {
+public:
+	FontGlyph32(const GlyphColumn32 &c0,
+			    const GlyphColumn32 &c1,
+			  	const GlyphColumn32 &c2,
+			  	const GlyphColumn32 &c3,
+			  	const GlyphColumn32 &c4,
+			  	const GlyphColumn32 &c5,
+			  	const GlyphColumn32 &c6,
+			  	const GlyphColumn32 &c7);
+	FontGlyph32(const FontGlyph32 &fg);
+	GlyphColumn32 &column(byte index);
+private:
+	GlyphColumn32 _columns[FONT_WIDTH];
+};
+
+#define SAMURAIFONT_BASE_INDEX 23
+
 class PaletteFont {
   public:
-    PaletteFont(String name);       // instantiate the Font 
+    PaletteFont(String name, byte base_index);  // instantiate the Font 
     uint8_t size();
     byte bitColumn(byte index);
     byte *byteColumn(byte index);     //  return the 8 byte array for the indexed column of the glyph
-    FontGlyph *glyph(byte letter);    //
+    FontGlyph32 *glyph(byte letter);    //
     //
     //   Start right to left column iteration and
     //   return the first(last) column.
@@ -117,9 +140,10 @@ class PaletteFont {
     //
   private:
   	String _name;
-    FontGlyph *_glyphs;      // points to Font def
+    FontGlyph32 *_glyphs;    // points to Font def
     char  _letter;           // what letter is this? (not really needed)
-    FontGlyph *_glyph;       // font part associated with the _letter
+    FontGlyph32 *_glyph;     // font part associated with the _letter
+    byte _base_index;        // char value for the first glyph  (32 for many fonts)
     byte *_columns;          // array of font columns
     byte *_column_iter;      // used for right to left iteration
     uint8_t _size;           // how many columns in the font

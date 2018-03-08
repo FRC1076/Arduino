@@ -22,7 +22,7 @@
 //
 // How many NeoPixels are attached to each Pin?
 //
-#define NUMPIXELS         128
+#define NUMPIXELS         256
 #define PIXELSPERCOLUMN     8
 #define COLUMNSPERGLYPH     8
 #define DISPLAYCOLUMNS   (NUMPIXELS/PIXELSPERCOLUMN)
@@ -35,11 +35,11 @@
 // example for more information on possible values.
 Adafruit_NeoPixel pixels[] = {
         Adafruit_NeoPixel(NUMPIXELS, PIN0, NEO_GRB + NEO_KHZ800),
-        //Adafruit_NeoPixel(NUMPIXELS, PIN1, NEO_GRB + NEO_KHZ800),
-        //Adafruit_NeoPixel(NUMPIXELS, PIN2, NEO_GRB + NEO_KHZ800),
+        Adafruit_NeoPixel(NUMPIXELS, PIN1, NEO_GRB + NEO_KHZ800),
+        Adafruit_NeoPixel(NUMPIXELS, PIN2, NEO_GRB + NEO_KHZ800),
 };
 
-#define NUMDISPLAYS 1
+#define NUMDISPLAYS 2
 
 
 /* This array is a simple representation of the color palette we use. */
@@ -52,57 +52,103 @@ Adafruit_NeoPixel pixels[] = {
 }; */
 
 uint32_t colors[] = {
-        0x0,
-        0x0,
-        0x161616,
-        0xa0a0a,
-        0xacacac,
-        0x787878,
-        0xffcc08,
-        0xf4771f,
-        0x9a491d,
-        0x90c17,
-        0xffd807,
-        0xffd907,
-        0xf6811c,
-        0xf36d21,
-        0x434343,
-        0x3e2518
+              /*  r   g   b    ColorName   */
+    0x000000,   /* {0, 0, 0}      Black      */
+    0x010101,   /* {01, 01, 01}   Grey       */
+    0x101010,   /* {16, 16, 16}   White      */
+    0x010404,   /* {16, 4, 4}                */
+    0x040000,   /* {4, 0, 0}      MedRed     */
+    0x100000,   /* {16, 0, 0}     DkRed      */
+    0x100400,   /* {16, 4, 0}     Amber      */
+    0x101000,   /* {16, 16, 0}    Yellow?    */
+    0x041000,   /* {4, 16, 0}                */
+    0x001600,   /* {0, 16, 0}     DkGreen    */
+    0x001004,   /* {0, 16, 16}               */
+    0x000004,   /* {0, 0 , 4}     LtBlue     */
+    0x040010,   /* {4, 0, 16}                */
+    0x040004,   /* {4, 0, 4}      MedPurple  */
+    0x100004,   /* {16, 0, 4}                */
+    0x100010    /* {16, 0, 16}    DkPurple   */
 };
 
 #define NUMCOLORS  (sizeof(colors)/sizeof(uint32_t))
 
-#define PICTURECOLUMNS 21
+#define PICTURECOLUMNS 32
 
 /* GlyphColumn32 supports 16 color encoding so the
  * enter 8-bit column fits into 32bit quantity.
  * This means only 1024 bytes for a full panel of image
  * data and 64bytes for a full palette of 16 colors.
  */
-GlyphColumn32 column_data[2][21] = {
+GlyphColumn32 column_data[2][32] = {
   {
-    GC32(1, 1, 1, 1, 1, 1, 1, 1),
-    GC32(1, 1, 1, 1, 1, 1, 1, 1),
-    GC32(1, 1, 1, 1, 1, 1, 1, 1),
-    GC32(1, 1, 1, 1, 1, 1, 1, 1),
-    GC32(1, 1, 1, 1, 1, 1, 1, 1),
-    GC32(3, 3, 3, 3, 3, 3, 3, 14),
-    GC32(6, 6, 6, 6, 6, 12, 3, 3),
-    GC32(6, 6, 2, 2, 10, 12, 3, 15),
-    GC32(6, 6, 6, 6, 6, 12, 3, 15),
-    GC32(6, 6, 6, 6, 6, 12, 3, 3),
-    GC32(6, 6, 9, 9, 11, 12, 3, 16),
-    GC32(6, 6, 6, 6, 6, 12, 3, 3),
-    GC32(6, 6, 6, 6, 6, 12, 3, 17),
-    GC32(6, 6, 6, 6, 6, 12, 3, 15),
-    GC32(7, 7, 7, 7, 7, 13, 3, 3),
-    GC32(8, 8, 8, 8, 8, 8, 3, 18),
-    GC32(3, 3, 3, 3, 3, 3, 3, 19),
-    GC32(1, 1, 1, 1, 1, 1, 1, 1),
-    GC32(1, 1, 1, 1, 1, 1, 1, 1),
-    GC32(1, 1, 1, 1, 1, 1, 1, 1),
-    GC32(1, 1, 1, 1, 1, 1, 1, 1),
+    GC32(0, 0, 1, 4, 4, 3, 3, 8),
+    GC32(0, 0, 1, 4, 4, 3, 3, 8),
+    GC32(0, 0, 1, 4, 4, 3, 3, 8),
+    GC32(0, 1, 1, 4, 3, 3, 8, 8),
+    GC32(0, 1, 1, 4, 3, 3, 8, 8),
+    GC32(0, 1, 1, 4, 3, 3, 8, 8),
+    GC32(0, 1, 1, 4, 3, 0, 0, 8),
+    GC32(0, 1, 1, 4, 0, 7, 0, 8),
+    GC32(0, 0, 1, 4, 0, 7, 7, 0),
+    GC32(0, 0, 1, 4, 0, 0, 7, 0),
+    GC32(0, 0, 1, 4, 4, 0, 7, 0),
+    GC32(0, 0, 1, 4, 4, 0, 7, 0),
+    GC32(0, 0, 1, 0, 0, 0, 0, 0),
+    GC32(0, 0, 2, 3, 3, 3, 3, 3),
+    GC32(0, 0, 3, 5, 5, 5, 5, 5),
+    GC32(0, 0, 3, 6, 5, 5, 5, 5),
+    GC32(0, 0, 3, 5, 5, 5, 6, 5),
+    GC32(0, 0, 3, 5, 5, 5, 5, 5),
+    GC32(0, 0, 3, 5, 5, 5, 5, 5),
+    GC32(0, 0, 3, 0, 0, 0, 0, 0),
+    GC32(0, 0, 3, 0, 7, 7, 7, 7),
+    GC32(0, 0, 3, 5, 0, 7, 7, 7),
+    GC32(0, 0, 3, 5, 5, 0, 7, 7),
+    GC32(0, 0, 3, 5, 5, 5, 0, 7),
+    GC32(0, 0, 3, 5, 5, 5, 0, 7),
+    GC32(0, 0, 0, 3, 3, 3, 0, 7),
+    GC32(0, 0, 0, 0, 0, 0, 7, 7),
+    GC32(0, 0, 0, 0, 0, 7, 7, 7),
+    GC32(0, 0, 0, 0, 7, 7, 7, 7),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0)
   },
+  {
+    GC32(9, 9, 6, 6, 0, 0, 0, 0),
+    GC32(9, 9, 6, 6, 0, 0, 0, 0),
+    GC32(9, 9, 6, 6, 0, 0, 0, 0),
+    GC32(9, 6, 6, 0, 0, 0, 0, 0),
+    GC32(9, 6, 6, 0, 0, 0, 0, 0),
+    GC32(9, 6, 6, 0, 0, 0, 0, 0),
+    GC32(9, 6, 6, 0, 0, 0, 0, 0),
+    GC32(9, 6, 6, 0, 0, 0, 0, 0),
+    GC32(9, 9, 6, 6, 0, 0, 0, 0),
+    GC32(9, 9, 6, 0, 0, 0, 0, 0),
+    GC32(9, 9, 6, 0, 0, 0, 0, 0),
+    GC32(9, 9, 6, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(3, 3, 3, 3, 0, 0, 0, 0),
+    GC32(6, 5, 5, 3, 3, 0, 0, 0),
+    GC32(5, 5, 6, 5, 3, 0, 0, 0),
+    GC32(5, 6, 5, 5, 3, 0, 0, 0),
+    GC32(5, 5, 5, 5, 3, 0, 0, 0),
+    GC32(0, 0, 0, 5, 3, 0, 0, 0),
+    GC32(7, 5, 5, 7, 0, 0, 0, 0),
+    GC32(7, 5, 5, 7, 7, 0, 0, 0),
+    GC32(0, 7, 7, 7, 7, 0, 0, 0),
+    GC32(0, 7, 0, 0, 7, 0, 0, 0),
+    GC32(7, 7, 7, 0, 7, 0, 0, 0),
+    GC32(7, 7, 0, 0, 7, 0, 0, 0),
+    GC32(0, 7, 7, 0, 7, 0, 0, 0),
+    GC32(7, 7, 7, 0, 7, 0, 0, 0),
+    GC32(0, 7, 0, 0, 7, 0, 0, 0),
+    GC32(0, 7, 7, 7, 0, 0, 0, 0),
+    GC32(7, 5, 5, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0),
+    GC32(0, 0, 0, 0, 0, 0, 0, 0)
+  }
 };
 
 // Transform the data to serpentine to make the array look like the display
@@ -154,6 +200,24 @@ void loadArrayPicture(Adafruit_NeoPixel &pixels, byte *picture) {
 
   pixels.show();
 
+}
+
+/* move every pixel over by one, shifting the entire */
+void shiftColumn(Adafruit_NeoPixel &pixels, int column) {
+  
+  // toss in-order column data to ooo column (and vice versa)
+  int src_btm = column*8;           //-- first in column
+  int dest_top = src_btm-1;         //-- last in dest column
+
+  //
+  // transfer data starting at first src element (increasing index)
+  // to the location starting at first dest (decreasing index)
+  // This is general enough that it works for zig or zag columns
+  //
+  for (int i=0; i<PIXELSPERCOLUMN; i++) {
+     uint32_t p = pixels.getPixelColor(src_btm+i);
+     pixels.setPixelColor(dest_top-i, p);
+  }
 }
 
 //
@@ -227,22 +291,6 @@ void shiftPicture(Adafruit_NeoPixel &pixels, const GlyphColumn32 &col, const Pal
   }
 }
 
-void shiftColumn(Adafruit_NeoPixel &pixels, int column) {
-  
-  // toss in-order column data to ooo column (and vice versa)
-  int src_btm = column*8;           //-- first in column
-  int dest_top = src_btm-1;         //-- last in dest column
-
-  //
-  // transfer data starting at first src element (increasing index)
-  // to the location starting at first dest (decreasing index)
-  // This is general enough that it works for zig or zag columns
-  //
-  for (int i=0; i<PIXELSPERCOLUMN; i++) {
-     uint32_t p = pixels.getPixelColor(src_btm+i);
-     pixels.setPixelColor(dest_top-i, p);
-  }
-}
 
 //
 //  Rotate the font 90 degrees to the left.   This makes
@@ -325,8 +373,7 @@ void loop() {
     // if the file didn't open, print an error:
     Serial.println("error opening test.txt");
   } */
-  Palette neo_pal("Robot1", colors, sizeof(colors)/sizeof(uint32_t));
-  neo_pal.dim(3);
+  Palette neo_pal("NeoPalette", colors, sizeof(colors)/sizeof(uint32_t));
 
   for (int pc=0; pc<PICTURECOLUMNS; pc++) {
     for (int d=0; d<NUMDISPLAYS; d++) {
@@ -339,9 +386,7 @@ void loop() {
     delay(1);
   }
 
-  neo_pal.dim(1);
-
-  /* add some padding to center the image on the display */
+  /* add some padding to center the image on the display
   for (int j=0; j<(DISPLAYCOLUMNS-PICTURECOLUMNS)/2; j++) {
     for (int d=0; d<NUMDISPLAYS; d++) {
       shiftPicture(pixels[d], GlyphColumn32(0), neo_pal);
@@ -349,9 +394,10 @@ void loop() {
     }
     delay(1);
   }
+  */
 
   /* wait for a time.   Of course, this is too long.  */
-  delay(2000);
+  delay(8000);
 
   // dim the palette by 1/2 and see how it changes things
   //neo_pal.dim(1);

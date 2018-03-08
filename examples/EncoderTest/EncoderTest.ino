@@ -18,6 +18,8 @@ uint32_t volatile pulseCount = 0;
 
 void pulseChange() {
    if (digitalRead(interruptPin) == HIGH){
+      Serial.print("Click: ");
+      Serial.println(pulseCount);
       if (pulseCount == 0) {
         startPulse = millis();
       }
@@ -37,11 +39,15 @@ void setup() {
 
 void loop() {
   if (pulseCount > PULSE_COUNT) {
-    Serial.print("Pulses: ");
-    Serial.print(pulseCount);
-    Serial.print("in time: ");
-    Serial.print(endPulse - startPulse);
-    Serial.println(" ms.");
+    noInterrupts();
+    uint32_t pw = endPulse - startPulse;
+    uint32_t pc = pulseCount;
     pulseCount = 0;
+    interrupts();
+    Serial.print("Pulses: ");
+    Serial.print(pc);
+    Serial.print(" in time: ");
+    Serial.print(pw);
+    Serial.println(" ms.");
   }
 }
