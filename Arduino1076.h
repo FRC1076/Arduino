@@ -20,9 +20,9 @@
 /* custom assert until we find something else */
 boolean assert(char *str_expr, boolean expr);
 
-extern uint32_t MonoPurple_colors[2];
 
 #define NEOPALETTE_NUMCOLORS 16
+extern uint32_t MonoPurple_colors[NEOPALETTE_NUMCOLORS];
 extern uint32_t NeoPalette_colors[NEOPALETTE_NUMCOLORS];
 
 #endif   /* ARDUINO1076 */

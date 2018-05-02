@@ -2,9 +2,23 @@
 
 uint32_t default_font_color = 0x100010;
 
-uint32_t MonoPurple_colors[2] = {
+uint32_t MonoPurple_colors[NEOPALETTE_NUMCOLORS] = {
     0x000000,
-    default_font_color
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,
+    default_font_color,    
 };
 
 

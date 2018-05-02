@@ -20,7 +20,7 @@
 #define PIN1            7
 
 // How many NeoPixels are attached to the Arduino?
-#define NUMPANELS           1
+#define NUMPANELS           2
 #define NUMPIXELS         (256*NUMPANELS)
 #define PIXELSPERCOLUMN     8
 #define COLUMNSPERGLYPH     8
@@ -72,7 +72,7 @@ static uint32_t colors[] = {
 
 #define NUMCOLORS      (sizeof(NeoPalette_colors)/sizeof(uint32_t))
 
-Palette palette(String('Neo'), NeoPalette_colors, NEOPALETTE_NUMCOLORS);
+Palette palette(String('Neo'), MonoPurple_colors, NUMCOLORS);
 PaletteFont font(String('Samurai3'), SAMURAIFONT_BASE_INDEX);
 
 // Transform the data to serpentine to make the array look like the display
@@ -209,6 +209,7 @@ void shiftInMessage(Adafruit_NeoPixel &pixels, const Palette &pal, char *message
         //sprintf(buf, "%c[%d]: 0x%x", m, col, glyph->column(col).data());
         //Serial.println(buf);
         shiftPicture(pixels, glyph->column(col), pal);
+        delay(10);
       }
       // Put in a spacer between each letter
       //shiftPicture(pixels, GlyphColumn32(0), pal);
@@ -217,9 +218,9 @@ void shiftInMessage(Adafruit_NeoPixel &pixels, const Palette &pal, char *message
 
 void loop() {
 
+  /* 
   char *nyan_top = "\x17\x18\x19\x1A";
   char *nyan_btm = "\x1B\x1C\x1D\x1E";
-  /*
   for (byte ci=0; ci<16; ci++) {
     for (int lines=0; lines<2; lines++) {
       shiftPicture(pixels, ci, palette);
@@ -227,8 +228,16 @@ void loop() {
   }
   */
   
-  shiftInMessage(pixels[0], palette, nyan_top);
-  shiftInMessage(pixels[1], palette, nyan_btm);
-  delay(10000);
+  #define NUMWORDS 3
+  while(1) {
+    char *say[NUMWORDS] =  { "WELCOME ", "FUTURE " "SAMURAI " };
+    for (int i=0; i<NUMWORDS; i++) {
+      shiftInMessage(pixels[0], palette, say[i]);
+      //shiftInMessage(pixels[1], palette, nyan_btm);
+      // delay(10);
+    }
+    // delay(10);
+  }
+ 
 
 }
