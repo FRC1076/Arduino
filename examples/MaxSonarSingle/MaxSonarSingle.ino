@@ -4,9 +4,8 @@
 #include <ArduinoJson.h>
 #include <Arduino1076.h>
 #include <EthernetUdp.h>  // UDP library from: bjoern@cs.stanford.edu 12/30/2008
-#include <NewPing.h>
 
-boolean debugging = true;
+boolean debugging = false;
 
 const double microspercm = 58.3;
 int interruptPin[2] =  { 3, 2 }; 
@@ -15,12 +14,10 @@ unsigned long endPulse[2] = { 0, 0 };
 boolean gotPulse[2] = { false, false };
 unsigned long pulseWidth[2] = { 0, 0 };
 unsigned long range[0];
-int localPort = 5811;
+int localPort = SONAR_PORT;
 DynamicJsonBuffer jsonBuffer;
 
-byte mac[] = {
-  0xDE, 0xAD, 0x10, 0x10, 0x76, 0x11
-};
+byte mac[] = SONAR_MAC;
 
 IPAddress robotip(10, 10, 76, 2);
 IPAddress myip(10, 10, 76, 11);
@@ -54,10 +51,12 @@ void setup() {
 
   attachInterrupt(digitalPinToInterrupt(interruptPin[0]), pulseChange0, CHANGE);
   
-  String input("{ \"sender\" : \"sonar\" }");
-  JsonObject& root = jsonBuffer.parseObject(input);
-  if (root[String("sender")] == String("sonar")) {
-    Serial.println("json passed");
+  if (debugging) {
+      String input("{ \"sender\" : \"sonar\" }");
+      JsonObject& root = jsonBuffer.parseObject(input);
+      if (root[String("sender")] == String("sonar")) {
+          Serial.println("json passed");
+      }
   }
 }
 

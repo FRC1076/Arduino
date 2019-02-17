@@ -10,9 +10,11 @@
 #endif
 
 #define ROBOT_IP  IPAddress(10, 10, 76, 2)
-#define SONAR_PORT 8888
-#define SONAR_IP  IPAddress(10, 10, 76, 7)
-#define SONAR_MAC { 0x20, 0x18, 0x10, 0x10, 0x76, 0x07 }
+
+// Single sonar unit
+#define SONAR_PORT 5811
+#define SONAR_IP  IPAddress(10, 10, 76, 11)
+#define SONAR_MAC { 0x20, 0x18, 0x10, 0x10, 0x76, 0x0B }
 
 #define CAMERALIGHTS_MAC  { 0x20, 0x18, 0x10, 0x10, 0x76, 0x17 }
 #define CAMERALIGHTS_IP  IPAddress(10, 10, 76, 17)
