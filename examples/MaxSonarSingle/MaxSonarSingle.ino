@@ -27,17 +27,19 @@ void pulseChange0() {
  }
  
 void pulseChange(int which) {
-   if (digitalRead(interruptPin[which]) == HIGH){
-      startPulse[which] = micros();
-      return;
-   }
-   if (digitalRead(interruptPin[which]) == LOW){
-      endPulse[which] = micros();
-      gotPulse[which] = true;
-   }
+    if (!gotPulse[which]) {
+      if (digitalRead(interruptPin[which]) == HIGH){
+          startPulse[which] = micros();
+          return;
+      }
+      if (digitalRead(interruptPin[which]) == LOW){
+          endPulse[which] = micros();
+          gotPulse[which] = true;
+      }
+    }
 }
 EthernetUDP Udp;
-char ReplyBuffer[255]; // a string to send back
+char SendBuffer[255]; // a string to send back
 
 void setup() {
   Ethernet.begin(mac, myip);
@@ -60,23 +62,28 @@ void setup() {
   }
 }
 
-
 void loop() {
   if (gotPulse[0]) {
     range[0] = round((endPulse[0] - startPulse[0]) / microspercm);
     if (debugging) {
-     Serial.println("Range:");
-     Serial.println(range[0]);
-     Serial.println(startPulse[0]);
+     Serial.print("Range: ");
+     Serial.print(range[0]);
+     Serial.print(" cm");
+     Serial.print("From: ");
+     Serial.print(endPulse[0]);
+     Serial.print(" - ");
+     Serial.print(startPulse[0]);
+     Serial.print(" = ");
+     Serial.println(endPulse[0]-startPulse[0]);
     }
-    gotPulse[0] = false;
-    Udp.beginPacket(ROBOT_IP, SONAR_PORT);
-    sprintf(ReplyBuffer, "{\"sender\": \"sonar\", \"message\": \"height\", \"cm\":%d}", range[0]);
-    Udp.write(ReplyBuffer);
+    Udp.beginPacket(ROBOT_IP, localPort);
+    sprintf(SendBuffer, "{\"sender\": \"sonar\", \"message\": \"height\", \"range-cm\":%u}", range[0]);
+    Udp.write(SendBuffer);
     Udp.endPacket();
     if (debugging) {
       Serial.println("Sent");
     }
+    gotPulse[0] = false;
     delay(100);
   }
 }
