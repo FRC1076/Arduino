@@ -24,19 +24,20 @@
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
 
-
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
 byte mac[] = {
-  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
+  0xDE, 0xAD, 0x10, 0x10, 0x76, 0x11
 };
-IPAddress ip(192, 168, 1, 177);
+IPAddress ip(10, 10, 76, 11);
+IPAddress robot_ip(10, 10, 76, 2);
 
-unsigned int localPort = 8888;      // local port to listen on
+unsigned int remotePort = 5811; //  port for receiver
+unsigned int localPort = 5811;  //  same
 
 // buffers for receiving and sending data
 char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  //buffer to hold incoming packet,
-char  ReplyBuffer[] = "acknowledged";       // a string to send back
+char ReplyBuffer[] = "acknowledged";       // a string to send back
 
 // An EthernetUDP instance to let us send and receive packets over UDP
 EthernetUDP Udp;
@@ -49,77 +50,42 @@ void setup() {
   Serial.begin(9600);
 }
 
-void loop() {
-  // if there's data available, read a packet
-  int packetSize = Udp.parsePacket();
-  if (packetSize) {
-    Serial.print("Received packet of size ");
-    Serial.println(packetSize);
-    Serial.print("From ");
-    IPAddress remote = Udp.remoteIP();
-    for (int i = 0; i < 4; i++) {
-      Serial.print(remote[i], DEC);
-      if (i < 3) {
-        Serial.print(".");
-      }
-    }
-    Serial.print(", port ");
-    Serial.println(Udp.remotePort());
-
-    // read the packet into packetBufffer
-    Udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
-    Serial.println("Contents:");
-    Serial.println(packetBuffer);
-
+void loop() {  
     // send a reply to the IP address and port that sent us the packet we received
-    Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+    Udp.beginPacket(robot_ip, remotePort);
+    int range = sonar.ping_cm();
+    Serial.print("Ping returns ");
+    Serial.print(range);
+    Serial.println(" cm");
     String rangemessage =
-      "{\"sender\":\"sonar\",\"message\":\"range\",\"center\":"+
+      "{\"sender\":\"sonar\",\"range-cm\":"+
       String(sonar.ping_cm())+"}";
     Udp.write(rangemessage.c_str());
     Udp.endPacket();
-  }
-  delay(10);
+
+    // send updates 40 times per second to avoid buffering at receiver
+    delay(25);
 }
 
-
 /*
-  Processing sketch to run with this example
- =====================================================
+# Python script to monitor the sonar data
+# This should be run in the 2019-Competition directory
+# so it can get to subsystems by name.
+#
+# simple utility to connect to sonar sensor at .11
+# and log the range-cm it returns.
+#
+from subsystems.sonarSensor import SonarSensor
+import time
+import logging
+logger = logging.getLogger('monitor_sonar')
 
- // Processing UDP example to send and receive string data from Arduino
- // press any key to send the "Hello Arduino" message
+sensor = SonarSensor('10.10.76.11', 5811, logger)
 
+while(1):
+    sensor.receiveRangeUpdates()
+    print("Received: ", sensor.pidGet())
+    # get 50 updates per second to stay ahead of the sender
+    time.sleep(0.02)
 
- import hypermedia.net.*;
-
- UDP udp;  // define the UDP object
-
-
- void setup() {
- udp = new UDP( this, 6000 );  // create a new datagram connection on port 6000
- //udp.log( true ); 		// <-- printout the connection activity
- udp.listen( true );           // and wait for incoming message
- }
-
- void draw()
- {
- }
-
- void keyPressed() {
- String ip       = "192.168.1.177";	// the remote IP address
- int port        = 8888;		// the destination port
-
- udp.send("Hello World", ip, port );   // the message to send
-
- }
-
- void receive( byte[] data ) { 			// <-- default handler
- //void receive( byte[] data, String ip, int port ) {	// <-- extended handler
-
- for(int i=0; i < data.length; i++)
- print(char(data[i]));
- println();
- }
- */
-
+*/
