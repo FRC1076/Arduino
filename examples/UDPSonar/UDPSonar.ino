@@ -34,10 +34,11 @@ IPAddress robot_ip(10, 10, 76, 2);
 
 unsigned int remotePort = 5811; //  port for receiver
 unsigned int localPort = 5811;  //  same
+const bool DEBUG = false;
 
 // buffers for receiving and sending data
 char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  //buffer to hold incoming packet,
-char ReplyBuffer[] = "acknowledged";       // a string to send back
+char replyBuffer[64];       // a string to send back
 
 // An EthernetUDP instance to let us send and receive packets over UDP
 EthernetUDP Udp;
@@ -47,24 +48,26 @@ void setup() {
   Ethernet.begin(mac, ip);
   Udp.begin(localPort);
 
-  Serial.begin(9600);
+  if (DEBUG) {
+    Serial.begin(9600);
+  }
 }
 
 void loop() {  
     // send a reply to the IP address and port that sent us the packet we received
     Udp.beginPacket(robot_ip, remotePort);
     int range = sonar.ping_cm();
-    Serial.print("Ping returns ");
-    Serial.print(range);
-    Serial.println(" cm");
-    String rangemessage =
-      "{\"sender\":\"sonar\",\"range-cm\":"+
-      String(sonar.ping_cm())+"}";
-    Udp.write(rangemessage.c_str());
+    if (DEBUG) {
+      Serial.print("Ping returns ");
+      Serial.print(range);
+      Serial.println(" cm");
+    }
+    sprintf(replyBuffer, "{\"sender\":\"sonar\",\"range-cm\":%d}", sonar.ping_cm());
+    Udp.write(replyBuffer);
     Udp.endPacket();
 
     // send updates 40 times per second to avoid buffering at receiver
-    delay(25);
+    delay(40);
 }
 
 /*
