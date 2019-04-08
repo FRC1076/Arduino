@@ -1,18 +1,18 @@
 // GlyphLights
 // Render bit pictures in 8x32 Neopixel matrix and
 // render shifting text.  (with bit font definitions)
-
+#include <SPI.h>
+#include <SD.h>
 #include <Adafruit_NeoPixel.h>
 #include <Arduino1076.h>
 #include <PaletteFont.h>
 
 #ifdef __AVR__
-  #include <avr/power.h>
+#include <avr/power.h>
 #endif
 
 //#include <SPI.h>
 //#include <SD.h>
-
 
 // Which pin on the Arduino is connected to the NeoPixels?
 // On a Trinket or Gemma we suggest changing this to 1
@@ -175,11 +175,13 @@ void shiftPicture(Adafruit_NeoPixel &pixels, byte color_index, const Palette &pa
   pixels.show();
 }
 
+File JARGON;
 
-void setup() {
+void setup() {`
   pixels[0].begin(); // This initializes the NeoPixel library.
   pixels[1].begin();
 
+  JARGON = SD.open("JARGON.TXT");
 
   Serial.begin(9600);
 
@@ -228,16 +230,14 @@ void loop() {
   }
   */
   
-  #define NUMWORDS 3
-  while(1) {
-    char *say[NUMWORDS] =  { "WELCOME ", "FUTURE " "SAMURAI " };
-    for (int i=0; i<NUMWORDS; i++) {
-      shiftInMessage(pixels[0], palette, say[i]);
+
+  while(JARGON.available()) {
+      String Item = JARGON.read();
+      shiftInMessage(pixels[0], palette, Item.c_str());
       //shiftInMessage(pixels[1], palette, nyan_btm);
       // delay(10);
-    }
     // delay(10);
   }
- 
+  
 
 }
