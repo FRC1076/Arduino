@@ -43,6 +43,14 @@ I’m sorry, Dave.   I’m afraid I can’t do that.
 I think you know what the problem is just as well as I do.
 I know that you and FTA were planning to disconnect me. And I'm afraid that's something I cannot allow to happen.
 
+#  Taken from T minus 3 hours Nasa shuttle checklist at https://science.ksc.nasa.gov/shuttle/countdown/count.html
+#  Feel free to add more as you wish.
+#
+PRESSURIZE MPS HELIUM TANKS
+MONITOR PAYLOAD BAY & MIDBODY DURING HELIUM TANK PRESS
+PERFORM SRB RGA POWER UP & TORQUE TEST
+ACTIVATE SRB RGA LCC EXCEPTION MONITORING
+IDENTIFY ANY COLLISION AVOIDANCE TIMES FOR THIS LAUNCH WINDOW OR LAUNCH PERIOD
 
 #
 #
