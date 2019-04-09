@@ -1,0 +1,52 @@
+#
+# Put # to start any line that contains comments.  We'll filter these out when we deploy
+# to the SD-Card.    Arduino will just read the text and display it.     Anyone interested
+# in increasing the sophistication, throw out some ideas!
+#
+
+
+
+#
+#
+#  First names beginning with A-D, please add your entries here (this helps reduce merge conflicts)
+#
+#
+
+
+
+#
+#
+#  First names beginning with E-H, please add your entries here (this helps reduce merge conflicts)
+#
+#
+
+
+
+
+#
+#
+#  First names beginning with I-L, please add your entries here (this helps reduce merge conflicts)
+#
+#
+
+
+
+
+#
+#
+#  First names beginning with M-R, please add your entries here (this helps reduce merge conflicts)
+#
+#
+
+#  Quotes from "2001: A Space Odyssey"  - contributed by Matthew
+I’m sorry, Dave.   I’m afraid I can’t do that.
+I think you know what the problem is just as well as I do.
+I know that you and FTA were planning to disconnect me. And I'm afraid that's something I cannot allow to happen.
+
+
+#
+#
+#  First names beginning with S-Z, please add your entries here (this helps reduce merge conflicts)
+#
+#
+
