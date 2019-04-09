@@ -16,11 +16,11 @@
 
 // Which pin on the Arduino is connected to the NeoPixels?
 // On a Trinket or Gemma we suggest changing this to 1
-#define PIN0            6
-#define PIN1            7
+#define NEODATA             6
+
 
 // How many NeoPixels are attached to the Arduino?
-#define NUMPANELS           2
+#define NUMPANELS           3
 #define NUMPIXELS         (256*NUMPANELS)
 #define PIXELSPERCOLUMN     8
 #define COLUMNSPERGLYPH     8
@@ -32,8 +32,8 @@
 // Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
 // example for more information on possible values.
 Adafruit_NeoPixel pixels[] =  {
-    Adafruit_NeoPixel(NUMPIXELS, PIN0, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUMPIXELS, PIN1, NEO_GRB + NEO_KHZ800)
+    Adafruit_NeoPixel(NUMPIXELS, NEODATA, NEO_GRB + NEO_KHZ800)
+    // Adafruit_NeoPixel(NUMPIXELS, PIN1, NEO_GRB + NEO_KHZ800)
 };
 
 /*  static uint32_t colors[] = {
@@ -184,12 +184,33 @@ void setup() {
 
   Serial.begin(9600);
 
+  Serial.print("Initializing SD card...");
+
+  if (!SD.begin(4)) {
+    Serial.println("initialization failed!");
+    while (1);
+  }
+  Serial.println("initialization done.");
+
+  // open the file. note that only one file can be open at a time,
+  // so you have to close this one before opening another.
+  JARGON = SD.open("JARGON.TXT");
+
+  // if the file opened okay, write to it:
+  if (JARGON) {
+    Serial.print("Opened Jargon.txt");
+  } else {
+    // if the file didn't open, print an error:
+    Serial.println("error opening Jargon.txt");
+  }
+
+
   // For a set of NeoPixels the first NeoPixel is 0, second is 1
   //loadPicture(pixels, picture);
   //delay(3000);
 
   // This is the CS pin on the 5100 board.
-  SD.begin(4);
+  // SD.begin(4);
 
   // Ths is required for MEGA compatibility with the SD reader?
   pinMode(SS, OUTPUT);
@@ -230,14 +251,23 @@ void loop() {
   */
 
 #define NUMCHARS_PER_READ 16
-  char Item[NUMCHARS_PER_READ];
+  char Item[NUMCHARS_PER_READ + 1];
   while(JARGON.available()) {
       JARGON.read(Item, NUMCHARS_PER_READ);
+      Item[NUMCHARS_PER_READ] = '\0';
+      Serial.write(Item);
       shiftInMessage(pixels[0], palette, Item);
       //shiftInMessage(pixels[1], palette, nyan_btm);
       // delay(10);
     // delay(10);
   }
-  
+  JARGON.close();
+  JARGON = SD.open("JARGON.TXT");
+  if (JARGON) {
+    Serial.print("Re-opened Jargon.txt");
+  } else {
+    // if the file didn't open, print an error:
+    Serial.println("Failed to reopen Jargon.txt");
+  }
 
 }
