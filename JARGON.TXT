@@ -57,6 +57,13 @@ I'm stepping through the door And I'm floating in a most peculiar way And the st
 For here Am I sitting in a tin can
 Far above the world Planet Earth is blue And there's nothing I can do
 
+# Robot lines adapted from "A Princess Bride"
+True love is the best thing in the world, except for fresh batteries.
+Never go in against a Samurai when Worlds is on the line.
+I do not mean to pry, but you don’t by any chance happen to have six wheels on your right side?
+Enough about my beauty. Everybody always talks about how beautiful I am. I've got a Rio. Talk about that.
+
+
 #
 #
 #  First names beginning with S-Z, please add your entries here (this helps reduce merge conflicts)
