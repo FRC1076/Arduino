@@ -52,6 +52,11 @@ PERFORM SRB RGA POWER UP & TORQUE TEST
 ACTIVATE SRB RGA LCC EXCEPTION MONITORING
 IDENTIFY ANY COLLISION AVOIDANCE TIMES FOR THIS LAUNCH WINDOW OR LAUNCH PERIOD
 
+# Lyrics from "Space Oddity"
+I'm stepping through the door And I'm floating in a most peculiar way And the stars look very different today
+For here Am I sitting in a tin can
+Far above the world Planet Earth is blue And there's nothing I can do
+
 #
 #
 #  First names beginning with S-Z, please add your entries here (this helps reduce merge conflicts)
