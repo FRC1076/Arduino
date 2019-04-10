@@ -19,7 +19,6 @@
 #define NEODATA0            6
 #define NEODATA1            7
 
-
 // How many NeoPixels are attached to the Arduino?
 #define NUMPANELS           2
 #define NUMPIXELS         (256*NUMPANELS)
@@ -36,6 +35,7 @@ Adafruit_NeoPixel pixels[] =  {
 };
 
 #define NUMCOLORS      (sizeof(NeoPalette_colors)/sizeof(uint32_t))
+#define SCROLL_DELAY_MS      10
 
 Palette palette(String('Neo'), MonoPurple_colors, NUMCOLORS);
 PaletteFont font(String('Samurai3'), SAMURAIFONT_BASE_INDEX);
@@ -43,6 +43,9 @@ PaletteFont font(String('Samurai3'), SAMURAIFONT_BASE_INDEX);
 // Transform the data to serpentine to make the array look like the display
 #define DATR(a, b, c, d, e, f, g, h)  h,g,f,e,d,c,b,a
 #define DATF(a, b, c, d, e, f, g, h)  a,b,c,d,e,f,g,h
+
+// Forward declaration due to default value
+void shiftInMessage(Adafruit_NeoPixel pixels[], const Palette &pal, char *message, uint32_t delayms = SCROLL_DELAY_MS);
                      
 /* move every pixel over by one, shifting the entire */
 void shiftColumn(Adafruit_NeoPixel pixels[], int column) {
@@ -58,8 +61,8 @@ void shiftColumn(Adafruit_NeoPixel pixels[], int column) {
   //
   for (int i=0; i<PIXELSPERCOLUMN; i++) {
       for (int j=0; j<2; j++) {
-        uint32_t p = pixels[j].getPixelColor(src_btm+i);
-        pixels[j].setPixelColor(dest_top-i, p);
+          uint32_t p = pixels[j].getPixelColor(src_btm+i);
+          pixels[j].setPixelColor(dest_top-i, p);
       }  
   }
 }
@@ -77,7 +80,7 @@ void shiftPicture(Adafruit_NeoPixel pixels[], const GlyphColumn32 &shift_in_colu
   //
   for(int i=0; i<PIXELSPERCOLUMN; i++) {
       for (int j=0; j<2; j++) {
-        pixels[j].setPixelColor(NUMPIXELS-i-1, pal.color(shift_in_column.row(i)));
+          pixels[j].setPixelColor(NUMPIXELS-i-1, pal.color(shift_in_column.row(i)));
       }
   }
 
@@ -103,7 +106,7 @@ void shiftPicture(Adafruit_NeoPixel pixels[], byte color_index, const Palette &p
       }
   }
   for (int k=0; k<2; k++) {
-    pixels[k].show();
+      pixels[k].show();
   }
 }
 
@@ -113,17 +116,19 @@ void setup() {
   pixels[0].begin(); // This initializes the NeoPixel library.
   pixels[1].begin();
 
-  // Ths is required for MEGA compatibility with the SD reader?
-  //pinMode(SS, OUTPUT);
+  // I think this is required for MEGA compatibility with the SD reader?
+  pinMode(SS, OUTPUT);
+
   Serial.begin(9600);
 
-  shiftInMessage(pixels, palette, "Initializing SD Card");
+  shiftInMessage(pixels, palette, "Initializing SD Card...");
 
   if (!SD.begin(4)) {
-    shiftInMessage(pixels, palette, "SD Card Init Failed");
-    // while (1);
+      shiftInMessage(pixels, palette, "***SD Card Init Failed***    ");
+      // while (1);     Okay to continue, we get error messages on display.
+  } else {
+      shiftInMessage(pixels, palette, "...SD Card Initialized!    ");
   }
-  shiftInMessage(pixels, palette, "SD Card Initialized!");
 
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
@@ -131,10 +136,10 @@ void setup() {
 
   // if the file opened okay, write to it:
   if (JARGON) {
-    shiftInMessage(pixels, palette, "Opened Jargon.txt                ");
+      shiftInMessage(pixels, palette, "Opened JARGON.TXT        ");
   } else {
-    // if the file didn't open, print an error:
-    shiftInMessage(pixels, palette, "Error opening Jargon.txt");
+      // if the file didn't open, print an error:
+      shiftInMessage(pixels, palette, "**Error opening JARGON.TXT***");
   }
   
 }
@@ -142,17 +147,17 @@ void setup() {
 //
 //   Shift in the message  (font offset is ' ' == 0)
 //
-void shiftInMessage(Adafruit_NeoPixel pixels[], const Palette &pal, char *message) {
+void shiftInMessage(Adafruit_NeoPixel pixels[], const Palette &pal, char *message, uint32_t delayms) {
   for (char *m=message; *m != NULL; m++) {
       FontGlyph32 *glyph = font.glyph(*m);
 
       // shift in the glyph one column at a time
       for (int col=0; col<COLUMNSPERGLYPH; col++) {
-        //char buf[32];
-        //sprintf(buf, "%c[%d]: 0x%x", m, col, glyph->column(col).data());
-        //Serial.println(buf);
-        shiftPicture(pixels, glyph->column(col), pal);
-        delay(10);
+          //char buf[32];
+          //sprintf(buf, "%c[%d]: 0x%x", m, col, glyph->column(col).data());
+          //Serial.println(buf);
+          shiftPicture(pixels, glyph->column(col), pal);
+          delay(delayms);
       }
       // Put in a spacer between each letter
       //shiftPicture(pixels, GlyphColumn32(0), pal);
@@ -168,14 +173,14 @@ void loop() {
       JARGON.read(Item, NUMCHARS_PER_READ);
       Item[NUMCHARS_PER_READ] = '\0';
       //Serial.write(Item);
-      shiftInMessage(pixels, palette, Item);
+      shiftInMessage(pixels, palette, Item, SCROLL_DELAY_MS);
   }
   JARGON.close();
   JARGON = SD.open("JARGON.TXT");
   if (JARGON) {
-    shiftInMessage(pixels, palette, "Re-Opened Jargon.txt");
+      shiftInMessage(pixels, palette, "...Re-Opened JARGON.TXT        ");
   } else {
-    // if the file didn't open, print an error:
-    shiftInMessage(pixels, palette, "Failed to reopen Jargon.txt");
+      // if the file didn't open, print an error:
+      shiftInMessage(pixels, palette, "***Failed to reopen JARGON.TXT***");
   }
 }
