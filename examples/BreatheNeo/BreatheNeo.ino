@@ -13,8 +13,9 @@
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
 void setup() {
+    //Serial.begin(115200);
   	strip.begin();
-  	strip.setBrightness(16);  	// Lower brightness and save eyeballs!
+  	strip.setBrightness(255);  	// Lower brightness and save eyeballs!
   	strip.clear();
   	strip.show(); 				// Initialize all pixels to 'off'
 }
@@ -22,23 +23,37 @@ void setup() {
 void loop() {
 	//Written by: Jason Yandell
 
-	float MaximumBrightness = 64;
-	float SpeedFactor = 3.1416 / 600; // I don't actually know what would look good
+	float MaximumBrightness = 255;
+	float SpeedFactor = 3.1416 / 300; // I don't actually know what would look good
 	float StepDelay = 20; // ms for a step delay on the lights
 
     // First set every LED to some purplish color
 	for (int ledNumber=0; ledNumber<NUM_LEDS; ledNumber++) {
-		strip.setPixelColor(ledNumber, 20, 0, 20);
+		strip.setPixelColor(ledNumber, Adafruit_NeoPixel::Color(100,0,100));
 	}
 
-    // Vary the intensity over the fully range.
-	// Make the lights breathe
-	for (int i = 0; i < 300; i++) {
-		// Intensity will go from 10 - MaximumBrightness in a "breathing" manner
-		float intensity = MaximumBrightness * (1.0 + sin(SpeedFactor * i));
-		strip.setBrightness(intensity);
-		strip.show();
-		//Wait a bit before continuing to breathe
-		delay(StepDelay);
-	}
+    while(1) {
+        //
+        //   This is still broken.  I thought this would cycle
+        //   through brightness along a scaled cos() wave.MaximumBrightness
+        //   But it just fades gradually and then turns off.MaximumBrightness
+        //   Perhaps pixels are cleared if brightness drops too low?
+        //
+        // Vary the intensity over the full range.
+	    // Make the lights breathe
+	    for (int i = 0; i < 300; i++) {
+		    float intensity = 64 + MaximumBrightness * (1 + cos(SpeedFactor * i));
+		    //Serial.println(intensity);
+            if (intensity > 255.0) {
+                intensity = 255.0;
+            }
+            if (intensity < 64.0) {
+                intensity = 64.0;
+            }
+            strip.setBrightness(int(intensity));
+		    strip.show();
+		    //Wait a bit before continuing to breathe
+		    delay(20);
+	    }
+    }
 }
