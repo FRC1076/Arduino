@@ -24,6 +24,8 @@ byte brightness[BREATHE_STEPS];
 byte MaxBrightness = 200;
 byte MinBrightness = 10;
 byte BrightnessScale = (MaxBrightness - MinBrightness) / 2;
+
+// Set this to true to dump brightness table to the serial monitor
 bool DumpBrightnessValues = false;
 
 // This assumes we take no time to display lights
