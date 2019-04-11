@@ -3,6 +3,11 @@
 #define NUM_LEDS 64
 #define PIN 6
 
+#define STEPS_PER_SECOND  30
+#define BREATHE_SECONDS    6
+#define BREATHE_STEPS      (STEPS_PER_SECOND * BREATHE_SECONDS)
+#define RADIANS_PER_STEP   ((2 * 3.1416) / BREATHE_STEPS)
+
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = pin number (most are valid)
 // Parameter 3 = pixel type flags, add together as needed:
@@ -11,49 +16,62 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
+byte brightness[BREATHE_STEPS];
+
+// vary these to acheive different dynamic range
+// Brightness will vary between MinBrightness
+// and MaxBrightness
+byte MaxBrightness = 200;
+byte MinBrightness = 10;
+byte BrightnessScale = (MaxBrightness - MinBrightness) / 2;
+float RadiansPerStep = (2 * 3.1416) / BREATHE_STEPS;
+bool DumpBrightnessValues = false;
+
+// This assumes we take no time to display lights
+// We may need to adjust this down to get target steps per second
+float EstimatedWorkTimePerLoop = 300.0;
+float StepDelay = (1000.0 - EstimatedWorkTimePerStep) / STEPS_PER_SECOND;
 
 void setup() {
-    //Serial.begin(115200);
+    if (DumpBrightnessValues) {
+        Serial.begin(115200);
+    }
+
+    // Turn off all of the lights
   	strip.begin();
-  	strip.setBrightness(255);  	// Lower brightness and save eyeballs!
   	strip.clear();
-  	strip.show(); 				// Initialize all pixels to 'off'
+    strip.show();
+
+    // set up the sign wave data for time efficiency
+    for (int step=0; step<BREATHE_STEPS; step++) {
+        float intensity = MinBrightness + BrightnessScale * (1 + sin(RadiansPerStep * step));
+        brightness[step] = byte(trunc(intensity));
+
+        if (DumpBrightnessValues) {
+            Serial.print("Brightness[");
+            Serial.print(step);
+            Serial.print("] =");
+            Serial.println(brightness[step]);
+        }
+    }
 }
 
 void loop() {
 	//Written by: Jason Yandell
-
-	float MaximumBrightness = 255;
-	float SpeedFactor = 3.1416 / 300; // I don't actually know what would look good
-	float StepDelay = 20; // ms for a step delay on the lights
-
-    // First set every LED to some purplish color
-	for (int ledNumber=0; ledNumber<NUM_LEDS; ledNumber++) {
-		strip.setPixelColor(ledNumber, Adafruit_NeoPixel::Color(100,0,100));
-	}
-
-    while(1) {
-        //
-        //   This is still broken.  I thought this would cycle
-        //   through brightness along a scaled cos() wave.MaximumBrightness
-        //   But it just fades gradually and then turns off.MaximumBrightness
-        //   Perhaps pixels are cleared if brightness drops too low?
-        //
-        // Vary the intensity over the full range.
-	    // Make the lights breathe
-	    for (int i = 0; i < 300; i++) {
-		    float intensity = 64 + MaximumBrightness * (1 + cos(SpeedFactor * i));
-		    //Serial.println(intensity);
-            if (intensity > 255.0) {
-                intensity = 255.0;
-            }
-            if (intensity < 64.0) {
-                intensity = 64.0;
-            }
-            strip.setBrightness(int(intensity));
-		    strip.show();
-		    //Wait a bit before continuing to breathe
-		    delay(20);
+    //Rewritten by: Matthew Jones
+    //
+    //  Do all steps of the breathe cycle
+	for (int step = 0; step < BREATHE_STEPS; step++) {
+        // use precomputed brightness values
+        strip.setBrightness(brightness[step]);
+        
+        // Set every LED to some purplish color
+	    for (int ledNumber=0; ledNumber<NUM_LEDS; ledNumber++) {
+		    strip.setPixelColor(ledNumber, Adafruit_NeoPixel::Color(50,0,50));
 	    }
+        strip.show();
+
+		//Wait a bit before continuing to breathe
+		delay(StepDelay);
     }
 }
