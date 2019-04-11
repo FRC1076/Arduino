@@ -3,6 +3,7 @@
 #define NUM_LEDS 64
 #define PIN 6
 
+// Pick animation frame rate and respiration rate
 #define STEPS_PER_SECOND  30
 #define BREATHE_SECONDS    4
 #define BREATHE_STEPS      (STEPS_PER_SECOND * BREATHE_SECONDS)
@@ -18,9 +19,8 @@
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 byte brightness[BREATHE_STEPS];
 
-// vary these to acheive different dynamic range
-// Brightness will vary between MinBrightness
-// and MaxBrightness
+// Vary these to achieve different dynamic range
+// Brightness will vary between MinBrightness and MaxBrightness
 byte MaxBrightness = 200;
 byte MinBrightness = 10;
 byte BrightnessScale = (MaxBrightness - MinBrightness) / 2;
@@ -68,11 +68,11 @@ void loop() {
         
         // Set every LED to some purplish color
 	    for (int ledNumber=0; ledNumber<NUM_LEDS; ledNumber++) {
-		    strip.setPixelColor(ledNumber, Adafruit_NeoPixel::Color(50,0,50));
+	        strip.setPixelColor(ledNumber, Adafruit_NeoPixel::Color(50,0,50));
 	    }
         strip.show();
 
-		//Wait a bit before continuing to breathe
-		delay(StepDelay);
+	    //Wait a bit before continuing to breathe
+	    delay(StepDelay);
     }
 }
