@@ -166,21 +166,28 @@ void shiftInMessage(Adafruit_NeoPixel pixels[], const Palette &pal, char *messag
 
 void loop() {
 
-#define NUMCHARS_PER_READ 16
-  char Item[NUMCHARS_PER_READ + 1];
+#define BUF_SIZE      1
+#define END_OF_FILE  -1
 
-  while(JARGON.available()) {
-      JARGON.read(Item, NUMCHARS_PER_READ);
-      Item[NUMCHARS_PER_READ] = '\0';
+  char Item[BUF_SIZE + 1];   // one character to terminate string
+  //
+  // For a change, read a single character, terminate it
+  // This permits us to cleanly detect EOF, and promotes smooth
+  // scrolling.   And we still have a string, albeit a single character
+  // string to pass to the shiftInMessage.
+  //
+  while((Item[0] = JARGON.read()) !=  END_OF_FILE) {
+      Item[1] = '\0';
       //Serial.write(Item);
       shiftInMessage(pixels, palette, Item, SCROLL_DELAY_MS);
   }
+  // If we are here, we 
   JARGON.close();
   JARGON = SD.open("JARGON.TXT");
   if (JARGON) {
-      shiftInMessage(pixels, palette, "...Re-Opened JARGON.TXT        ");
+      shiftInMessage(pixels, palette, "...Thinking about more to say...        ");
   } else {
       // if the file didn't open, print an error:
-      shiftInMessage(pixels, palette, "***Failed to reopen JARGON.TXT***");
+      shiftInMessage(pixels, palette, "***That's all folks!***");
   }
 }
