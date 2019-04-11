@@ -4,7 +4,7 @@
 #define PIN 6
 
 #define STEPS_PER_SECOND  30
-#define BREATHE_SECONDS    6
+#define BREATHE_SECONDS    4
 #define BREATHE_STEPS      (STEPS_PER_SECOND * BREATHE_SECONDS)
 #define RADIANS_PER_STEP   ((2 * 3.1416) / BREATHE_STEPS)
 
@@ -24,12 +24,11 @@ byte brightness[BREATHE_STEPS];
 byte MaxBrightness = 200;
 byte MinBrightness = 10;
 byte BrightnessScale = (MaxBrightness - MinBrightness) / 2;
-float RadiansPerStep = (2 * 3.1416) / BREATHE_STEPS;
 bool DumpBrightnessValues = false;
 
 // This assumes we take no time to display lights
 // We may need to adjust this down to get target steps per second
-float EstimatedWorkTimePerLoop = 300.0;
+float EstimatedWorkTimePerStep = 100.0;
 float StepDelay = (1000.0 - EstimatedWorkTimePerStep) / STEPS_PER_SECOND;
 
 void setup() {
@@ -44,7 +43,7 @@ void setup() {
 
     // set up the sign wave data for time efficiency
     for (int step=0; step<BREATHE_STEPS; step++) {
-        float intensity = MinBrightness + BrightnessScale * (1 + sin(RadiansPerStep * step));
+        float intensity = MinBrightness + BrightnessScale * (1 + sin(RADIANS_PER_STEP * step));
         brightness[step] = byte(trunc(intensity));
 
         if (DumpBrightnessValues) {
